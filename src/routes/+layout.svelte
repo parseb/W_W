@@ -10,7 +10,7 @@
     contracts,
   } from "svelte-ethers-store";
   import { ethers } from "ethers";
-  import { element, onMount } from "svelte/internal";
+  import { element, onMount, time_ranges_to_array } from "svelte/internal";
 
   import {
     AddrX,
@@ -19,29 +19,44 @@
     IODAOABI,
     IinstanceDAOABI,
     IMember1155ABI,
-    IMembraneABI,
-
+    IMembraneABI
   } from "./chainData/abi/ABIS";
 
 
 
   let loading;
+  let isLoginOver3;
+  let isLoginOver2;
+  let isLoginOver1;
 
    const logIn = async () => {
     const p = new ethers.providers.Web3Provider(window.ethereum);
-    const accounts = await p.send("eth_requestAccounts", []);
+    // const accounts = await p.send("eth_requestAccounts", []);
     const signer = p.getSigner();
     defaultEvmStores.setProvider(p);
     sessionStorage.setItem("loggedIn", "true");
-    console.log(signerAddress);
   };
 
-   const logOut = async () => {
-    sessionStorage.setItem("loggedIn", "false");
-    defaultEvmStores.disconnect();
-    // defaultEvmStores.setProvider(null);
-    location.reload();
-  };
+
+
+ 
+  const loginMouseover = async () => {
+    setTimeout( () => {
+      isLoginOver1 = true;
+      setTimeout( () => {
+      isLoginOver2 = true;
+      setTimeout( () => {
+      isLoginOver3 = true;
+    },500 );
+    },900 );
+    },1200 );
+
+
+
+
+    
+  }
+
 
   onMount(async () => {
 
@@ -52,23 +67,6 @@
       let chainAddr = AddrX[$chainId];
 
 
-      await defaultEvmStores.attachContract(
-        "WALLtoken",
-        chainAddr.WALLtoken,
-        WALLtokenABI
-      );
-
-
-
-
-
-      await defaultEvmStores.attachContract("ODAO", chainAddr.ODAO, IODAOABI);
-
-      await defaultEvmStores.attachContract(
-        "MEMBERregistry",
-        chainAddr.MEMBERregistry,
-        IMember1155ABI
-      );
 
       loading = false;
   }});
@@ -101,9 +99,9 @@
     <br>
     <div class="title text-center">
       <br>
-      <h1 class="blendin">\   |  | | | | |  |  |  /</h1>
-      <h1 class="title-walllaw">WalllaW</h1>
-      <h3 class="title-walllaw">explorer</h3>
+      <h1 class="blendin { isLoginOver3 ? " loginMouseover" : "" }">\   |  | | | | |  |  |  /</h1>
+      <h1 class="title-walllaw { isLoginOver2 ? " loginMouseover" : "" } ">WalllaW</h1>
+      <h3 class="title-walllaw { isLoginOver1 ? " loginMouseover" : "" } ">explorer</h3>
     </div>
     <div class="row">
       <div class="col-4"></div>
@@ -111,7 +109,7 @@
       <div class="col-4 text-center">
         <br>
         
-        <button type="button" class="btn btn-outline-gold " on:click={logIn} > 
+        <button type="button" class="btn btn-outline-gold " on:click={logIn} on:mouseover={loginMouseover}> 
           <br>
           <br>
           Wallet In 
@@ -154,6 +152,8 @@
         --main-black: #101011;
     }
 
+    
+
     .btn-outline-gold {
       border: 1px solid;
       border-color: var(--main-light);
@@ -184,6 +184,9 @@
       color: var(--main-light);
       font-size: 60px;
       font-family: 'Domine', serif;
+    }
+    .loginMouseover {
+      color: var(--main-gold) !important;
     }
     
     /* font-family: 'Domine', serif;
