@@ -1,4 +1,5 @@
 <script>
+
   import {
     defaultEvmStores,
     connected,
@@ -28,33 +29,32 @@
   let isLoginOver3;
   let isLoginOver2;
   let isLoginOver1;
+  let lightbulb;
 
    const logIn = async () => {
     const p = new ethers.providers.Web3Provider(window.ethereum);
-    // const accounts = await p.send("eth_requestAccounts", []);
+    const accounts = await p.send("eth_requestAccounts", []);
     const signer = p.getSigner();
-    defaultEvmStores.setProvider(p);
-    sessionStorage.setItem("loggedIn", "true");
+    await defaultEvmStores.setProvider(p);
+    if ( defaultEvmStores.signerAddress )   sessionStorage.setItem("loggedIn", "true");
+
   };
 
 
 
  
   const loginMouseover = async () => {
+    lightbulb = true;
     setTimeout( () => {
       isLoginOver1 = true;
       setTimeout( () => {
       isLoginOver2 = true;
       setTimeout( () => {
       isLoginOver3 = true;
+    },300 );
     },500 );
     },900 );
-    },1200 );
 
-
-
-
-    
   }
 
 
@@ -65,9 +65,6 @@
     if (isLoggedIn == "true") {
       await defaultEvmStores.setProvider();
       let chainAddr = AddrX[$chainId];
-
-
-
       loading = false;
   }});
 
@@ -111,6 +108,7 @@
         
         <button type="button" class="btn btn-outline-gold " on:click={logIn} on:mouseover={loginMouseover}> 
           <br>
+          <h5 class="lightbulb { lightbulb ? " lightbulb-on" : ""}"><i class="bi bi-lightbulb"></i></h5>    
           <br>
           Wallet In 
           <br>
@@ -140,7 +138,10 @@
 
 <style>
 
-
+body {
+      background-color: var(--main-black);
+      color: var(--dark-grey);
+    }
   :root {
         --main-gold: #FFDE4F;
         --main-blue: #1e51da;
@@ -152,7 +153,9 @@
         --main-black: #101011;
     }
 
-    
+    .lightbulb-on {
+      color:var(--main-gold);
+    }
 
     .btn-outline-gold {
       border: 1px solid;

@@ -34,6 +34,7 @@
   "type": "module",
   "dependencies": {
     "@monerium/sdk": "^2.0.17",
+    "@popperjs/core": "^2.11.6",
     "alchemy-sdk": "^2.2.5",
     "buffer": "^6.0.3",
     "d3": "^6.5.0",
@@ -46,7 +47,7 @@
     "ethers": "^5.7.2",
     "evm-bn": "^1.1.2",
     "firebase": "^9.17.1",
-    "ipfs-http-client": "^59.0.0",
+    "ipfs-http-client": "^60.0.0",
     "serialize-javascript": "^5.0.1",
     "svelte-ethers-store": "^2.5.8"
   }
