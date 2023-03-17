@@ -7,6 +7,9 @@
   export let onClosed;
   export let title = "Modal title";
 
+  export let provider;
+  export let signer;
+
   const modalClose = (data) => {
     open = false;
     if (onClosed) {

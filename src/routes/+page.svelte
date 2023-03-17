@@ -187,15 +187,17 @@
     });
 
     let showPopup = false;
+    let showPopupAddM = false;
+    let showPopupInvest = false;
 
-const onShowPopup = (ev) => {
-    showPopup = true;
+const onShowPopup = (id) => {
+    if (id == 'invest') showPopupInvest = true;
+    if (id =='addM' ) showPopupAddM = true;
 }
 
-const onPopupClose = (data) => {
-    showPopup = false;
-
-    console.log(data);
+const onPopupClose = (id) => {
+    if (id == 'invest') showPopupInvest = false;
+    if (id =='addM' ) showPopupAddM = false;
 }
 
     const logOut = async () => {
@@ -276,7 +278,7 @@ const onPopupClose = (data) => {
     <div classs="container container-main">
         <div class="container-select-view">
             <div class="row">     
-                <div class="col-6">
+                <div class="col-5">
                     <div class="dao-selector">
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle orgSelector"  type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -296,19 +298,50 @@ const onPopupClose = (data) => {
                           <br>
                     </div>
                 </div>
-                <div class="col-6">
-                    <button class="btn btn-add-entity"   on:click={onShowPopup} >
+                <div class="col-3">
+                    <button class="btn btn-add-entity"   on:click={() => { onShowPopup('addM')} } >
                         <i class="bi bi-building-add">
-                            Add Entity
+                            Add Entity Membership
                         </i>
-                    </button>
-                    
-                    <Modal open={showPopup} onClosed={(data) => onPopupClose(data)}>
-                        <h2>Testing</h2>
-                    </Modal>
+                    </button>         
                 </div>
-
+                <div class="col-2">
+                    <button class="btn btn-add-entity" disabled  on:click={()=> {alert("disabled in explorer")}} >
+                        <i class="bi bi-plus-circle">
+                            New Organisation 
+                        </i>
+                    </button>  
+                </div>
+                <div class="col-2">
+                    <button class="btn btn-add-entity"   on:click={ () => { onShowPopup('invest')}} >
+                        <i class="bi bi-currency-euro">
+                            Invest                  
+                        </i>
+                    </button>         
+                </div>
             </div>
+          </div>
+          <div class="container">
+            <Modal open={showPopupAddM} provider={$provider} signer={$signer}  onClosed={() => onPopupClose('addM')} >
+            <div class="container container-popslot">
+                <div class="row">
+                    <div class="col-12">
+                       abccc zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz zzzzzzzzzzzzzzzzzzzzzzzzz zzzzzzzzzzzzzzzzzzz
+                    </div>
+                </div>
+            </div>
+            </Modal>
+          </div>
+          <div class="container">
+            <Modal open={showPopupInvest} provider={$provider} signer={$signer}  onClosed={() => onPopupClose('invest')} >
+            <div class="container container-popslot">
+                <div class="row">
+                    <div class="col-12">
+Invest ttttttttttttttttttt ttttttttttttttttttttttttttttttttttyyyyytttttttttttttttttttttttttttttttt0x0x0x 123
+                    </div>
+                </div>
+            </div>
+            </Modal>
           </div>
 
     </div>
@@ -319,6 +352,8 @@ const onPopupClose = (data) => {
 
 
 <style>
+
+
 
 :root {
         --main-blue: #1e51da;
