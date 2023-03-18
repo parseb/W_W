@@ -68,8 +68,10 @@
         IinstanceDAOABI,
         IMember1155ABI,
         IMembraneABI,
-        ABstractA
+        ABstractA,
     } from "./chainData/abi/ABIS";
+
+
 
     import { ethers, getDefaultProvider, utils } from "ethers";
     import { onMount } from "svelte";
@@ -109,8 +111,15 @@
     let isEforM;
     let gotMembrane;
     let isMintDAO;
+    let investInAddr;
+    let isInvestable;
+    let amountToInvest;
+    let amtGas;
+    let investmentInProgress;
+    let sepaDATA;
 
     export let data;
+
 
     const doM = async () => {
         const client = new MoneriumClient();
@@ -166,7 +175,7 @@
 
     const getmemberships = async () => {
         let MRaddress = AddrX[$chainId].MEMBERregistry;
-        console.log(MRaddress)
+        console.log(MRaddress);
         let MemberRegistry = new ethers.Contract(
             MRaddress,
             IMember1155ABI,
@@ -180,34 +189,56 @@
         return activeMemberships;
     };
 
-    const initContracts = async (provider) => { 
+    const initContracts = async (provider) => {
+        await defaultEvmStores.attachContract(
+            "MembraneRegistry",
+            AddrX[$chainId].MembraneRegistry,
+            IMembraneABI
+        );
+        await defaultEvmStores.attachContract(
+            "Member1155",
+            AddrX[$chainId].MEMBERregistry,
+            IMember1155ABI
+        );
+        await defaultEvmStores.attachContract(
+            "ODAO",
+            AddrX[$chainId].ODAO,
+            IODAOABI
+        );
+        await defaultEvmStores.attachContract(
+            "AbstractA",
+            AddrX[$chainId].AbstractA,
+            ABstractA
+        );
+    };
 
-    await defaultEvmStores.attachContract("MembraneRegistry",AddrX[$chainId].MembraneRegistry, IMembraneABI);
-    await defaultEvmStores.attachContract("Member1155",AddrX[$chainId].MEMBERregistry, IMember1155ABI);
-    await defaultEvmStores.attachContract("ODAO",AddrX[$chainId].ODAO, IODAOABI);
-    await defaultEvmStores.attachContract("AbstractA", AddrX[$chainId].AbstractA, ABstractA);
+    const getTsymb = async (addr) => {
+        if (ethers.utils.isAddress(addr)) {
+            let given20 = new ethers.Contract(addr, ERC20ABI, $provider);
+            let symb = await given20.symbol();
+            return symb;
+        }
+    };
 
-  }
-
-   const getTsymb = async (addr) => {
-    if (ethers.utils.isAddress(addr)) {
-      let given20 = new ethers.Contract(addr, ERC20ABI, $provider);
-      let symb = await given20.symbol();
-      return symb;
-  }
-}
-
- const hasSufficientBalance = async (address, amount) => {
-    amount = ethers.utils.formatEther(amount);
-  let given20 = new ethers.Contract(address, ERC20ABI, $provider);
-  let balance = await given20.balanceOf($signerAddress);
-  isEforM = isEforM == undefined ? ( balance >= amount ) : ( isEforM && ( balance >= amount ) ) ;
-  console.log("amount ", String(amount) );
-  console.log("balance", String(balance ));
-  console.log("sufficient??? ", isEforM, balance >= amount, balance, amount);
-  return  balance >= amount ;
-}
-
+    const hasSufficientBalance = async (address, amount) => {
+        amount = ethers.utils.formatEther(amount);
+        let given20 = new ethers.Contract(address, ERC20ABI, $provider);
+        let balance = await given20.balanceOf($signerAddress);
+        isEforM =
+            isEforM == undefined
+                ? balance >= amount
+                : isEforM && balance >= amount;
+        console.log("amount ", String(amount));
+        console.log("balance", String(balance));
+        console.log(
+            "sufficient??? ",
+            isEforM,
+            balance >= amount,
+            balance,
+            amount
+        );
+        return balance >= amount;
+    };
 
     onMount(async () => {
         isOnMountLoading = true;
@@ -258,8 +289,7 @@
         );
 
         let m = await getmemberships();
-        Memberships =
-            m.length == 0 ? ["no valid memberships found"] : m;
+        Memberships = m.length == 0 ? ["no valid memberships found"] : m;
     });
 
     let showPopup = false;
@@ -295,88 +325,123 @@
     };
 
     const isDAO = async (addrToCheck) => {
-        let isD = await $contracts.ODAO.isDAO(addrToCheck); 
+        let isD = await $contracts.ODAO.isDAO(addrToCheck);
         return isD;
-    }
+    };
 
     const isEligibleForMembership = async () => {
+        if (!$chainId) await initContracts($provider);
+        isMintDAO = false;
+
+        gotMembrane = await $contracts.MembraneRegistry.getInUseMembraneOfDAO(
+            mintMembershipAddress
+        );
+        let isD = await isDAO(mintMembershipAddress);
+
+        isMintDAO = isD && gotMembrane[0].length > 0;
+    };
+
+    const isMemberOf = async (whatInstance) => {
+        if (await isDAO(whatInstance)) {
+            let instance = new ethers.Contract(
+                whatInstance,
+                IinstanceDAOABI,
+                $provider
+            );
+            let isM = await instance.isMember($signerAddress);
+            return isM;
+        } else {
+            return false;
+        }
+    };
+
+    const successTransaction = async () => {
+        alert("much success");
+    };
+
+    const mintMembership = async (addr) => {
+        let Dinstance = new ethers.Contract(addr, IinstanceDAOABI, $signer);
+        let tx = await Dinstance.mintMembershipToken($signerAddress);
+
+        console.log(tx);
+        console.log(tx.wait(1));
+        tx.wait(1).then(() => {
+            successTransaction();
+        });
+        //     const domain = { name: "WalllaW Signer", version: '0.0.1', chainId: toString($chainId), atAddress: AddrX[$chainId].ABstractA }
+        // // const domain = {}
+        // const UserOperationType = {
+        //     Operation: [
+        //     { name: 'sender', type: 'address' },
+        //     { name: 'nonce', type: 'uint256' },
+        //     { name: 'daoInstance', type: 'address' },
+        //     { name: 'callData', type: 'bytes' },
+        //     { name: 'signature', type: 'bytes' } ///empty
+        //     ]
+        // }
+
+        // let D = new ethers.Contract(addr, IinstanceDAOABI, $signer);
+        // let t = await D.populateTransaction.mintMembershipToken(addr);
+        // let pt  = await preprocessTransaction(t);
+        // console.log('transaction -- ', t, 'procesed ', pt);
+
+        // let actionString = `minting membership for\n${pt.daoInstace}\nwith nonce: ${pt.nonce}`;
+        // let actionSig = $contracts.AbstractA.functions.mintMembershipToken.signature;
+        // console.log('action sig ', 'action sig');
+
+        // let signedAction = await $signer.signMessage(actionString);
+        // console.log(signedAction);
+
+        // console.log(s);
+        // // nonce , sender, daoinstace, calldata
+        // /// to sign
+
+        // // let signedTransaction = await $signer.signMessage(pt);
+        // console.log('signed ', signedTransaction);
+
+        // let signedT = await $signer.signMessage("i am signing this mint membership personal sign message");
+
+        // await D.mintMembershipToken($signerAddress);
+    };
+
+
+const addrSlice =  (inAddr) => {
+   return (inAddr.slice(2,6) + inAddr.slice(-4))
+}
+
+const investUpdate = async () => {
+    isInvestable = false;
+    if ( ethers.utils.isAddress(investInAddr) ) isInvestable = await  isDAO(investInAddr);
     
-    if (! $chainId ) await initContracts($provider);
-    isMintDAO = false;
-    
-    gotMembrane = await $contracts.MembraneRegistry.getInUseMembraneOfDAO(mintMembershipAddress);
-    let isD = await isDAO(mintMembershipAddress);
+}
 
-    isMintDAO = isD && ( gotMembrane[0].length > 0 ) 
+const resetInvest = async () => {
+    investmentInProgress = false;
+    isInvestable = false;
+    investInAddr=""
+    amountToInvest=0;
+    amtGas=0
+}
 
-        
-  }
+const setSEPAdata = () => {
+    sepaDATA = `I ${addrSlice($signerAddress)} invest ${amountToInvest} in ${addrSlice(investInAddr)} ${amtGas}`;
+}
 
-const isMemberOf = async (whatInstance) => {
-    if (await isDAO(whatInstance)) {
-        let instance = new ethers.Contract(whatInstance, IinstanceDAOABI,$provider);
-        let isM = await instance.isMember($signerAddress);
-      return  isM;
-    } else {
-        return false;
-    }
+const signInitInvest = async () => {
+    investmentInProgress = isInvestable;
+    setSEPAdata();
+    console.log(sepaDATA);
+    let signedSEPA = await $signer.signMessage(sepaDATA);
+    let investment = {}
+
+    //// save to firebase
+    /// wait transfer
+    /// wallet to contract on behalf of signer
+    investmentInProgress=false;
 }
 
 
-const successTransaction = async () => {
-    alert("much success");
-}
 
-
- const mintMembership = async (addr) => {
-    
-    let Dinstance = new ethers.Contract(addr, IinstanceDAOABI, $signer);
-    let tx =  await Dinstance.mintMembershipToken($signerAddress);
-
-    console.log(tx);
-    console.log(tx.wait(1));
-    tx.wait(1).then( () => {
-          successTransaction();  
-    })
-    //     const domain = { name: "WalllaW Signer", version: '0.0.1', chainId: toString($chainId), atAddress: AddrX[$chainId].ABstractA }
-    // // const domain = {}
-    // const UserOperationType = {
-    //     Operation: [
-    //     { name: 'sender', type: 'address' },
-    //     { name: 'nonce', type: 'uint256' },
-    //     { name: 'daoInstance', type: 'address' },
-    //     { name: 'callData', type: 'bytes' },
-    //     { name: 'signature', type: 'bytes' } ///empty
-    //     ]
-    // }
-
-    
-    // let D = new ethers.Contract(addr, IinstanceDAOABI, $signer);
-    // let t = await D.populateTransaction.mintMembershipToken(addr);
-    // let pt  = await preprocessTransaction(t);
-    // console.log('transaction -- ', t, 'procesed ', pt);
-
-    // let actionString = `minting membership for\n${pt.daoInstace}\nwith nonce: ${pt.nonce}`;
-    // let actionSig = $contracts.AbstractA.functions.mintMembershipToken.signature;
-    // console.log('action sig ', 'action sig');
-
-    // let signedAction = await $signer.signMessage(actionString);
-    // console.log(signedAction);
-
-    // console.log(s);
-    // // nonce , sender, daoinstace, calldata
-    // /// to sign 
-
-    // // let signedTransaction = await $signer.signMessage(pt);
-    // console.log('signed ', signedTransaction);
-
-    // let signedT = await $signer.signMessage("i am signing this mint membership personal sign message");
-
-    // await D.mintMembershipToken($signerAddress);
-  }
-  
-
-  
 
 
 </script>
@@ -435,7 +500,7 @@ const successTransaction = async () => {
     <div classs="container container-main">
         <div class="container-select-view">
             <div class="row">
-                <div class="col-5">
+                <div class="col-4">
                     <div class="dao-selector">
                         <div class="dropdown">
                             <button
@@ -466,16 +531,14 @@ const successTransaction = async () => {
                         <br />
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-2">
                     <button
                         class="btn btn-add-entity"
                         on:click={() => {
                             onShowPopup("addM");
                         }}
                     >
-                        <i class="bi bi-building-add">
-                            Add Entity Membership
-                        </i>
+                        <i class="bi bi-building-add"> Add Membership </i>
                     </button>
                 </div>
                 <div class="col-2">
@@ -498,6 +561,21 @@ const successTransaction = async () => {
                     >
                         <i class="bi bi-currency-euro"> Invest </i>
                     </button>
+                </div>
+                <div class="col-2">
+                    <div class="form-check form-switch">
+                        <label
+                            class="form-check-label switch-text"
+                            for="flexSwitchCheckDisabled">Gassless mode</label
+                        >
+                        <input
+                            class="form-check-input switch-body"
+                            type="checkbox"
+                            role="switch"
+                            id="flexSwitchCheckDisabled"
+                            disabled
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -529,7 +607,7 @@ const successTransaction = async () => {
                                                 bind:value={mintMembershipAddress}
                                                 on:input={isEligibleForMembership}
                                                 class="form-control"
-                                                id="createDAOtoken"
+                                                id="inputFieldPopup"
                                                 placeholder="address of DAO you want to mint membership 0x"
                                             />
                                         </div>
@@ -544,10 +622,9 @@ const successTransaction = async () => {
                                         </small>
                                     </div>
                                     {#if gotMembrane}
-                                    {#if gotMembrane[0].length == 0 }
-                                    {"Not a WalllaW instance"}
-
-                                    {/if}
+                                        {#if gotMembrane[0].length == 0}
+                                            {"Not a WalllaW instance"}
+                                        {/if}
                                         {#each gotMembrane[0] as membraneTokenAddr}
                                             <div class="row">
                                                 <div class="col-4">symbol</div>
@@ -572,17 +649,17 @@ const successTransaction = async () => {
                                                     ]}
                                                 </div>
                                                 <div class="col-2">
-                                                    {#await  hasSufficientBalance(membraneTokenAddr, gotMembrane[1][gotMembrane[0].indexOf(membraneTokenAddr)]) then X }
-                                                    {#if X}
-                                                    <!-- {hasSufficientBalance(membraneTokenAddr, gotMembrane[1][gotMembrane[0].indexOf(membraneTokenAddr)])} -->
-                                                        <i 
-                                                            class="bi bi-check2-circle color-green"
-                                                        />
-                                                    {:else}
-                                                        <i
-                                                            class="bi bi-x-circle-fill color-red"
-                                                        />
-                                                    {/if}
+                                                    {#await hasSufficientBalance(membraneTokenAddr, gotMembrane[1][gotMembrane[0].indexOf(membraneTokenAddr)]) then X}
+                                                        {#if X}
+                                                            <!-- {hasSufficientBalance(membraneTokenAddr, gotMembrane[1][gotMembrane[0].indexOf(membraneTokenAddr)])} -->
+                                                            <i
+                                                                class="bi bi-check2-circle color-green"
+                                                            />
+                                                        {:else}
+                                                            <i
+                                                                class="bi bi-x-circle-fill color-red"
+                                                            />
+                                                        {/if}
                                                     {/await}
                                                 </div>
                                             </div>
@@ -590,30 +667,28 @@ const successTransaction = async () => {
                                     {/if}
                                 </div>
                                 {#if gotMembrane}
-                                {#await isMemberOf(mintMembershipAddress)  then isM }
-
-                                {#if ! isM}
-                                {#if isEforM}
-                                <div
-                                on:click={() =>
-                                    mintMembership(mintMembershipAddress)}
-                                class="btn btn-mint {!isEforM &&
-                                !isMintDAO
-                                    ? 'd-none'
-                                    : ''}"  
-                            >
-                                mint membership
-                            </div>
+                                    {#await isMemberOf(mintMembershipAddress) then isM}
+                                        {#if !isM}
+                                            {#if isEforM}
+                                                <div
+                                                    on:click={() =>
+                                                        mintMembership(
+                                                            mintMembershipAddress
+                                                        )}
+                                                    class="btn btn-mint {!isEforM &&
+                                                    !isMintDAO
+                                                        ? 'd-none'
+                                                        : ''}"
+                                                >
+                                                    mint membership
+                                                </div>
+                                            {/if}
+                                        {:else}
+                                            <br />
+                                            <b> Already Member </b>
+                                        {/if}
+                                    {/await}
                                 {/if}
-
-                            {:else}
-                            <br>
-                            <b>                            Already Member
-                            </b>
-                                {/if}
-                            {/await}
-                                {/if}
-                              
                             </form>
                         </div>
                     </div>
@@ -630,20 +705,133 @@ const successTransaction = async () => {
                 onClosed={() => onPopupClose("invest")}
             >
                 <div class="container container-popslot">
+                    <br>
+                    <div class="form-group">
                     <div class="row">
-                        <div class="col-12">
-                            Invest ttttttttttttttttttt
-                            ttttttttttttttttttttttttttttttttttyyyyytttttttttttttttttttttttttttttttt0x0x0x
-                            123
+
+                        <div class="col-6">
+                            <div class="form-label"> Organization</div>
+                            <div class="row"> 
+                                <div class="col-10">
+                                    <input
+                                    type="text"
+                                    bind:value={investInAddr}
+                                    on:input={investUpdate}
+                                    class="form-control"
+                                    id="inputFieldPopup"
+                                    placeholder="address of Entity you want to invest in"
+                                />
+                                </div>
+                                <div class="col-2">
+                                    {#if isInvestable}  
+                                    <i class="bi bi-check2-circle color-green bi-invest" /> 
+                                        {:else}
+                                    <i class="bi bi-x-circle-fill color-red bi-invest"/>    
+                                {/if}
+                                </div>
+                            </div>
+                            </div>
+                                             
+
+                        <div class="col-3">
+                            <div class="form-label"> Investment </div>
+
+                            <input
+                            type="number"
+                            min=0
+                            bind:value={amountToInvest}
+                            class="form-control"
+                            id="inputFieldPopup"
+                            placeholder="€ investment amount"
+                        />
+                        </div>
+                        
+                        <div class="col-3">
+                            <div class="form-label"> Gas Refil (optional)</div>
+
+                                <input
+                                type="number"
+                                min=0
+                                bind:value={amtGas}
+                                class="form-control"
+                                id="inputFieldPopup"
+                                placeholder="€ 0"
+                            />
+                        </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <br>
+                        <div class="col-6">
+                             <p class="invest instructions">
+                                <br>
+                                These are Instructions <br>
+                                <b> Step 1 </b> Do the hookey pockey <br>
+                                <b> Step 2 </b> Dirink Water
+                             </p>
+                        </div>
+                        <div class="col-6">
+                            <div class="row">
+                                <div class="col-10">
+                                    <br>
+                                    <input
+                                    type="text"
+                                    class="form-control sepa-data-field"
+                                    value={
+                                  isInvestable ? `I ${addrSlice($signerAddress)} invest ${amountToInvest} in ${addrSlice(investInAddr)} ${amtGas}` : "n/a"
+                                    }
+                                    on:change={setSEPAdata}
+                                    id="inputFieldPopup"
+                                    readOnly
+                                    placeholder="SEPA description"
+                                    readonly
+                                />
+                                </div>
+                                <div class="col-2">
+                                    <br>
+                                    <button class="btn btn-outline btn-copy" on:click={ () => {alert("Copy button is unavailable outside normal working hours.\nPlease proceed to copy manually.\nThank you for your understanding!")} }>
+                                        <i class="bi bi-clipboard bi-copy"></i>
+                                    </button>
+                                </div>
+                        </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                                <br>
+                                <div class="row">
+                                    <div class="col-12 btn-invest-col">
+                                        {#if investmentInProgress}
+                                        <button class="btn btn-sign-reset"
+                                        on:click={resetInvest}
+                                        >
+                                         Reset
+                                        </button>   
+                                        {:else}
+                                        <button class="btn btn-sign-invest"
+                                        on:click={signInitInvest}
+                                        >
+                                         <b> Sign Investment </b>
+                                        </button>   
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
             </Modal>
         </div>
     </div>
 {/if}
 
 <style>
+
+.btn-invest-col {
+    margin-top: 8px;
+}
+
     :root {
         --main-blue: #1e51da;
         --main-green: #2cc0a6;
@@ -654,11 +842,60 @@ const successTransaction = async () => {
         --main-black: #101011;
     }
 
+    .sepa-data-field {
+        display: block;
+
+    }
+
+    .btn-copy {
+        font-size: large;
+        border: 1px solid var(--main-black);
+    }
+
+    .btn-sign-invest {
+        border: 1px solid;
+        border-color: var(--main-green);
+        color: var(--main-peach);
+    }
+
+    .btn-sign-invest:hover {
+        color: var(--main-green);
+        font-family: 'domine';
+        border-color: var(--main-light);
+    }
+
+    .btn-sign-reset {
+        border: 1px solid;
+        border-color: var(--main-peach);
+        color: var(--main-green);
+    }
+
+
     .modalMain {
         width: 1000px;
     }
 
+    .bi-invest {
+        font-size: x-large;
+    }
 
+    .switch-text {
+        color: var(--main-peach);
+        font-family: "domine";
+        font-weight: 50;
+        font-size: large;
+    }
+
+    .switch-text:hover {
+        color: var(--main-light);
+    }
+
+    .form-switch {
+        padding-top: 8px;
+    }
+    .switch-body:hover {
+        border-color: var(--main-grey);
+    }
 
     .btn-add-entity {
         border: 1px solid;
