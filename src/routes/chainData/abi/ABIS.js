@@ -1,9 +1,9 @@
 export const AddrX = {
   10200 : { /// chiado gnosis testnet
-    ODAO: "0x19bA3eA779bd7b0b1EC607F7fFf2Ee2E90A88334",
-    MembraneRegistry: "0x2730863026B9ffB5d116704afe2A7dd6a098DAd4",
-    MEMBERregistry: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-    AbstractA: "0x8398bCD4f633C72939F9043dB78c574A91C99c0A",
+    ODAO: "0xbaab6f430a9bf6618724ee64738352a9e19aba60",
+    MembraneRegistry: "0x26f7943b15be7952d8551e644c8fdaf396925add",
+    MEMBERregistry: "0x06ea1e3ce4a2cf4f0b4e699fe65110713e889e12", //  "0x8464135c8F25Da09e49BC8782676a84730C318bC",
+    AbstractA: "0xbc75be629709c80c79dceab1c5dd4134f5e17836",
     RPCURL: "http://127.0.0.1:8545"  /// https://rpc.chiadochain.net
   },
   100 : { ///gnosis
@@ -27,6 +27,22 @@ export const AddrX = {
   
   11155111: "0xF66d63301C39c9e42250896FAfb43fCbE7102674",
 };
+
+
+// ///  local chiado
+
+// == Logs ==
+//   Member --- 10200 __________####_____ : 0x06ea1e3ce4a2cf4f0b4e699fe65110713e889e12
+//   ODAO --- 10200 __________####_____ : 0xbaab6f430a9bf6618724ee64738352a9e19aba60
+//   memBRAINE --- 10200 __________####_____ : 0x26f7943b15be7952d8551e644c8fdaf396925add
+//   Abstract A --- 10200 __________####_____ : 0xbc75be629709c80c79dceab1c5dd4134f5e17836
+//   Meeting POAP --- 10200 __________####_____ : 0x3e356ea26bff02b930d07bab216edfeb3b82cd8b
+//   ----------populate-----------
+//   -----------------------------
+//   changing membrane 507988496082309901  --- expected ---  507988496082309901
+//   Garden DAO --- 10200 __________####_____ : 0x5290b2bf41ced96b0a08b51748dd821b2cf005f9
+//   Membrane ID --- 10200 __________####_____ : 507988496082309901
+//   Internal Token  --- 10200 __________####_____ : 0xa374b2232e5ee5f92e32485c1e7dc0c5e068925e
 
 
 export const ERC20ABI = [
@@ -919,6 +935,36 @@ export const IinstanceDAOABI = [
   },
   {
     "inputs": [],
+    "name": "getAllActiveIndecisions",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[3]",
+            "name": "metadata",
+            "type": "uint256[3]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "expressorsList",
+            "type": "address[]"
+          }
+        ],
+        "internalType": "struct Indecision[]",
+        "name": "Indecisions",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getILongDistanceAddress",
     "outputs": [
       {
@@ -989,6 +1035,19 @@ export const IinstanceDAOABI = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lastAt",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1074,6 +1133,13 @@ export const IinstanceDAOABI = [
         "type": "uint256"
       }
     ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "scrubIndecisions",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },

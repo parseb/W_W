@@ -44,7 +44,7 @@
     "d3-scale-chromatic": "^2.0.0",
     "d3-selection": "^2.0.0",
     "dotenv": "^16.0.2",
-    "ethers": "^5.7.2",
+    "ethers": "5.7.2",
     "evm-bn": "^1.1.2",
     "firebase": "^9.17.1",
     "ipfs-http-client": "^60.0.0",

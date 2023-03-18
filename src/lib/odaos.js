@@ -13,6 +13,7 @@ import {
     AddrX,
     IMember1155ABI,
       IODAOABI,
+      IMembraneABI,
     IinstanceDAOABI,
     ERC20ABI,
   } from "../routes/chainData/abi/ABIS";
@@ -207,31 +208,39 @@ export const saveMembraneToIPFS = async (membraneJSON) => {
   let isEforM = false;
   let gotMembrane;
   let isMintDAO =false;
+let MembraneRegistry;
+let ODAO;
+let Member1155;
 
-  export const isEligibleForMembership = async (daoAddr) => {
-    await defaultEvmStores.attachContract(
-        "MembraneRegistry",
-        AddrX[chainId].MembraneRegistry,
-        IMembraneABI
-      );
-    await defaultEvmStores.attachContract(
-        "ODAO",
-        AddrX[chainId].ODAO,
-          IODAOABI
-      );
+  const initContracts = async (provider) => { 
+    let chainId = provider.network.chainId;
+    MembraneRegistry = new ethers.Contract(AddrX[chainId].MembraneRegistry, IMembraneABI, provider); 
+    ODAO = new ethers.Contract(AddrX[chainId].ODAO, IODAOABI, provider); 
+    Member1155 = new ethers.Contract(AddrX[chainId].MEMBERregistry, IMember1155ABI, provider);
+
+
+  }
+
+  export const isEligibleForMembership = async (daoAddr, provider) => {
+    let chainId = provider.network.chainId;
+    
+    await initContracts(provider);
+
+
     isMintDAO = false;
-    gotMembrane = await $contracts.MembraneRegistry.getInUseMembraneOfDAO(daoAddr);
-    let isDAO = await $contracts.ODAO.isDAO(daoAddr); 
+    gotMembrane = await MembraneRegistry.getInUseMembraneOfDAO(daoAddr);
+    let isDAO = await ODAO.isDAO(daoAddr); 
     isMintDAO = isDAO && ( gotMembrane[0].length == 0 );
 
     console.log(gotMembrane);
-    
+    return isMintDAO;
   }
 
 export const hasSufficientBalance = async (address, amount) => {
   let given20 = new ethers.Contract(address, ERC20ABI, $provider);
   let balance = await given20.balanceOf($signerAddress);
   isEforM = ( balance >= amount );
+  console.log()
   return ( balance >= amount );
 }
 
@@ -390,7 +399,7 @@ export const hasSufficientBalance = async (address, amount) => {
     await instance.wrapMint(wrapRootAmt);
   };
 
-  const approveWrap = async () => {
+  export const approveWrap = async () => {
     let instance = new ethers.Contract(rootTokenAddress, ERC20ABI, $signer);
     await instance.approve(selectedInternalTokenAddress, wrapRootAmt);
   };
