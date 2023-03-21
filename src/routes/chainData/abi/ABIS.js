@@ -1,17 +1,19 @@
 export const AddrX = {
   10200 : { /// chiado gnosis testnet
-    ODAO: "0xbaab6f430a9bf6618724ee64738352a9e19aba60",
-    MembraneRegistry: "0x26f7943b15be7952d8551e644c8fdaf396925add",
-    MEMBERregistry: "0x06ea1e3ce4a2cf4f0b4e699fe65110713e889e12", //  "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-    AbstractA: "0xbc75be629709c80c79dceab1c5dd4134f5e17836",
-    RPCURL: "http://127.0.0.1:8545"  /// https://rpc.chiadochain.net
+    ODAO: "0x8d8ac2ba0b27caeb13b1423ed7097428ea454796",
+    MembraneRegistry: "0xd1e4aa3c8354d2feb5ca03c86dacfa5bfd17b8ca",
+    MEMBERregistry: "0x17b712bc840a9076f3dd01c620b9b7e92e77fee1", //  "0x8464135c8F25Da09e49BC8782676a84730C318bC",
+    AbstractA: "0x1ecec508df45b917443dfedbe5fac525d739d989",
+    RPCURL: "https://rpc.chiadochain.net",
+    EUR: "0xb106ed7587365a16b6691a3D4B2A734f4E8268a2"
   },
   100 : { ///gnosis
-    ODAO: "0x19bA3eA779bd7b0b1EC607F7fFf2Ee2E90A88334",
-    MembraneRegistry: "0x2730863026B9ffB5d116704afe2A7dd6a098DAd4",
-    MEMBERregistry: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-    AbstractA: "0x8398bCD4f633C72939F9043dB78c574A91C99c0A",
-    RPCURL: "http://127.0.0.1:8545"  /// https://rpc.chiadochain.net
+    ODAO: "0x3ee92aab242cefdbd05d3e49ff53132d0b99c665",
+    MembraneRegistry: "0x89a775ee7de63e92b1121586c785ee3c72265500",
+    MEMBERregistry: "0x9d4722d668c4b790ab670c229c336389056615cb",
+    AbstractA: "0x836aeb02206a49dda1738bdcdc6821ca5a74370b",
+    EUR: "0xcB444e90D8198415266c6a2724b7900fb12FC56E",
+    RPCURL: "https://rpc.gnosischain.com/"  /// https://rpc.chiadochain.net
   },
   31337: {
     RPCURL: "http://127.0.0.1:8545",
@@ -19,31 +21,28 @@ export const AddrX = {
   },
   5: { /// goerli
     ODAO: "0x19bA3eA779bd7b0b1EC607F7fFf2Ee2E90A88334",
-    MembraneRegistry: "0x2730863026B9ffB5d116704afe2A7dd6a098DAd4",
-    MEMBERregistry: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-    AbstractA: "0x8398bCD4f633C72939F9043dB78c574A91C99c0A",
+    MembraneRegistry: "0x26f7943b15be7952d8551e644c8fdaf396925add",
+    MEMBERregistry: "0x06ea1e3ce4a2cf4f0b4e699fe65110713e889e12",
+    AbstractA: "0xbc75be629709c80c79dceab1c5dd4134f5e17836",
     RPCURL: "http://127.0.0.1:8545"  
-  },
-  
-  11155111: "0xF66d63301C39c9e42250896FAfb43fCbE7102674",
+  }  
 };
 
 
-// ///  local chiado
+/// chiado
 
-// == Logs ==
-//   Member --- 10200 __________####_____ : 0x06ea1e3ce4a2cf4f0b4e699fe65110713e889e12
-//   ODAO --- 10200 __________####_____ : 0xbaab6f430a9bf6618724ee64738352a9e19aba60
-//   memBRAINE --- 10200 __________####_____ : 0x26f7943b15be7952d8551e644c8fdaf396925add
-//   Abstract A --- 10200 __________####_____ : 0xbc75be629709c80c79dceab1c5dd4134f5e17836
-//   Meeting POAP --- 10200 __________####_____ : 0x3e356ea26bff02b930d07bab216edfeb3b82cd8b
-//   ----------populate-----------
-//   -----------------------------
-//   changing membrane 507988496082309901  --- expected ---  507988496082309901
-//   Garden DAO --- 10200 __________####_____ : 0x5290b2bf41ced96b0a08b51748dd821b2cf005f9
-//   Membrane ID --- 10200 __________####_____ : 507988496082309901
-//   Internal Token  --- 10200 __________####_____ : 0xa374b2232e5ee5f92e32485c1e7dc0c5e068925e
-
+// Member --- 10200 __________####_____ : 0x17b712bc840a9076f3dd01c620b9b7e92e77fee1
+// ODAO --- 10200 __________####_____ : 0x8d8ac2ba0b27caeb13b1423ed7097428ea454796
+// memBRAINE --- 10200 __________####_____ : 0xd1e4aa3c8354d2feb5ca03c86dacfa5bfd17b8ca
+// Abstract A --- 10200 __________####_____ : 0x1ecec508df45b917443dfedbe5fac525d739d989
+// Meeting POAP --- 10200 __________####_____ : 0x0e36e5eec7519ce05a8d7e2d0299cd998c852719
+// ----------populate-----------
+// -----------------------------
+// changing membrane 503341974626749334  --- expected ---  503341974626749334
+// Garden DAO --- 10200 __________####_____ : 0xdb310e87c7384946d68c6061afc285935e8690f5
+// Membrane ID --- 10200 __________####_____ : 503341974626749334
+// Garden DAO --- 10200 __________####_____ : 0xdb310e87c7384946d68c6061afc285935e8690f5
+// Internal Token  --- 10200 __________####_____ : 0xa595db5807cbe12d44a5330c0d685f01b5537c46
 
 export const ERC20ABI = [
   {
@@ -1920,6 +1919,84 @@ export const IMembraneABI = [
 
 export const ABstractA = [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "AbstractA_AddressZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AbstractA_AgencyAlreadyManifesting",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AbstractA_CallFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AbstractA_InvalidNonce",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AbstractA_NotADAO",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AbstractA_OnlyOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "AbstractA_Unauthorized",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      }
+    ],
+    "name": "AbstractCall",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      }
+    ],
+    "name": "NewDeposit",
+    "type": "event"
+  },
+  {
     "inputs": [
       {
         "components": [
@@ -1950,11 +2027,49 @@ export const ABstractA = [
           }
         ],
         "internalType": "struct UserOperation",
-        "name": "",
+        "name": "UO",
         "type": "tuple"
       }
     ],
     "name": "abstractCall",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "s",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "walllawInstance_",
+        "type": "address"
+      }
+    ],
+    "name": "addGasTo",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "newAllawance",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "who_",
+        "type": "address"
+      }
+    ],
+    "name": "authorizeAgent",
     "outputs": [
       {
         "internalType": "bool",
@@ -1976,6 +2091,103 @@ export const ABstractA = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "forWho_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "toWhere_",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nonce_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "transferData_",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature_",
+        "type": "bytes"
+      }
+    ],
+    "name": "depositFor",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "s",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_messageHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getEthSignedMessageHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_message",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_nonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "getMessageHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -2008,6 +2220,103 @@ export const ABstractA = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_ethSignedMessageHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "recoverSig",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "sig",
+        "type": "bytes"
+      }
+    ],
+    "name": "splitSig",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "r",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint8",
+        "name": "v",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_signer",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_message",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_nonce",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "verify",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   }
 ];

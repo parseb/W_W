@@ -71,8 +71,6 @@
         ABstractA,
     } from "./chainData/abi/ABIS";
 
-
-
     import { ethers, getDefaultProvider, utils } from "ethers";
     import { onMount } from "svelte";
     import { constants } from "buffer";
@@ -117,21 +115,15 @@
     let amtGas;
     let investmentInProgress;
     let sepaDATA;
+    let lastAt;
+    let currentUserNonce;
+    let currentInternalTInvest;
 
     export let data;
 
 
-    const doM = async () => {
-        const client = new MoneriumClient();
-        const authClient = await client.auth(data.placeholder);
 
-        allOrders = await client.getOrders();
-        allOrders = JSON.stringify(allOrders);
-        console.log(allOrders);
-    };
-
-    // const client = new MoneriumClient()
-
+    /// huh
     const init = async () => {
         const firebaseConfig = {
             apiKey: data.fbk,
@@ -144,6 +136,33 @@
         const app = initializeApp(firebaseConfig);
 
         return app;
+    };
+
+    const isDAO = async (addrToCheck) => {
+        let isD = await $contracts.ODAO.isDAO(addrToCheck);
+        return isD;
+    };
+
+    const seTlastAt = async (instance) => {
+        let isD = await isDAO(instance);
+        if (isD) {
+            let Dinstance = new ethers.Contract(
+                instance,
+                IinstanceDAOABI,
+                $signer
+            );
+            lastAt = await Dinstance.lastAt();
+        }
+    };
+
+    /// huh
+    const doM = async () => {
+        const client = new MoneriumClient();
+        const authClient = await client.auth(data.placeholder);
+
+        allOrders = await client.getOrders();
+        allOrders = JSON.stringify(allOrders);
+        console.log(allOrders);
     };
 
     const getCurrentUserData = async () => {
@@ -252,6 +271,7 @@
         if (isLoggedIn == "true") {
             let p = await defaultEvmStores.setProvider();
             await initContracts(p);
+            await getCurrentNonce();
 
             const currentUserRef = doc(db, "users", $signerAddress);
             const currentUser = await getDoc(currentUserRef);
@@ -324,13 +344,9 @@
         selected0xName = await getNameFormAddress(selectedDaoAddress);
     };
 
-    const isDAO = async (addrToCheck) => {
-        let isD = await $contracts.ODAO.isDAO(addrToCheck);
-        return isD;
-    };
-
     const isEligibleForMembership = async () => {
         if (!$chainId) await initContracts($provider);
+        await initContracts($provider);
         isMintDAO = false;
 
         gotMembrane = await $contracts.MembraneRegistry.getInUseMembraneOfDAO(
@@ -404,46 +420,163 @@
         // await D.mintMembershipToken($signerAddress);
     };
 
+    const addrSlice = (inAddr) => {
+        inAddr = inAddr ? inAddr : "             ";
+        return inAddr.slice(2, 6) + inAddr.slice(-4);
+    };
 
-const addrSlice =  (inAddr) => {
-   return (inAddr.slice(2,6) + inAddr.slice(-4))
-}
+    const investUpdate = async () => {
+        isInvestable = false;
+        await seTlastAt(investInAddr);
+        if (ethers.utils.isAddress(investInAddr))
+            isInvestable = await isDAO(investInAddr);
+    };
 
-const investUpdate = async () => {
-    isInvestable = false;
-    if ( ethers.utils.isAddress(investInAddr) ) isInvestable = await  isDAO(investInAddr);
-    
-}
+    const resetInvest = async () => {
+        await seTlastAt(investInAddr);
 
-const resetInvest = async () => {
-    investmentInProgress = false;
-    isInvestable = false;
-    investInAddr=""
-    amountToInvest=0;
-    amtGas=0
-}
+        investmentInProgress = false;
+        isInvestable = false;
+        investInAddr = "";
+        amountToInvest = 0;
+        amtGas = 0;
+    };
 
-const setSEPAdata = () => {
-    sepaDATA = `I ${addrSlice($signerAddress)} invest ${amountToInvest} in ${addrSlice(investInAddr)} ${amtGas}`;
-}
+    const getCurrentNonce = async () => {
+        currentUserNonce = await $contracts.AbstractA.getNonceOfUser(
+            $signerAddress
+        );
+        console.log(currentUserNonce);
+        return currentUserNonce;
+    };
 
-const signInitInvest = async () => {
-    investmentInProgress = isInvestable;
-    setSEPAdata();
-    console.log(sepaDATA);
-    let signedSEPA = await $signer.signMessage(sepaDATA);
-    let investment = {}
+    const setInternalTInvest = async () => {
+        let Dinstance = new ethers.Contract(
+            investInAddr,
+                IinstanceDAOABI,
+                $signer
+            );
+        currentInternalTInvest = await Dinstance.internalTokenAddress();
+    }
 
-    //// save to firebase
-    /// wait transfer
-    /// wallet to contract on behalf of signer
-    investmentInProgress=false;
-}
+    const setSEPAdata = async () => {
+        await seTlastAt(investInAddr);
+        await getCurrentNonce();
+        await setInternalTInvest();
 
+        let n = await $contracts.AbstractA.getNonceOfUser($signerAddress);
+        console.log(n);
+        sepaDATA = `${addrSlice($signerAddress)}${addrSlice(
+            investInAddr
+        )}X${amountToInvest}X${amtGas}X${n}`;
+    };
 
+    const saveInvestment = async (investment) => {
+        let newInvestment = await setDoc(
+            doc(db, "investments", investment.signature),
+            {
+                userAddress: $signerAddress,
+                signature: investment.signature,
+                status: investment.status,
+                data: investment.data,
+            }
+        );
 
+        console.log("investment saved", newInvestment);
+    };
 
+    const executeInvestment = async (investment, order) => {
+        console.log("executing investment");
+        const sepa = investment.data.split("X");
+        const requestURL =  `/invest/?chainid=${$chainId}&forwho=${$signerAddress}&towhere=${investment.targetorg}&data=${investment.data}&signature=${investment.signature}&internaltoken=${currentInternalTInvest}`;
+        console.log(requestURL);
+        const res = await fetch(requestURL);
+        if (res.ok) {
+            console.log("got execute investment response: ", res);
+            return 3; /// success         
+        } else {
+            console.error('error', res.status, res);
+            resetInvest();
+        }
 
+    };
+
+    const signInitInvest = async () => {
+        let currentInvest = {};
+        currentInvest.status = 0;
+        investmentInProgress = isInvestable;
+        await setSEPAdata();
+        console.log("sepa data : ", sepaDATA);
+
+        let signedSEPA = await $signer.signMessage(sepaDATA);
+        console.log("sepa data : ", signedSEPA);
+
+        currentInvest = {
+            data: sepaDATA,
+            signature: signedSEPA,
+            status: 1,
+            targetorg: investInAddr,
+        };
+
+        const client = new MoneriumClient();
+        const authClient = await client.auth(data.placeholder);
+
+        let Idb = await saveInvestment(currentInvest);
+        let orders;
+        let lenOrders;
+
+        let intervalID = setInterval(async () => {
+            currentInvest.status = 2;
+            orders = await client.getOrders({ memo: sepaDATA });
+
+            console.log("setintervalorders", orders);
+
+            if (orders && orders.length > 0) {
+                lenOrders = orders.length > 0;
+                console.log(client, sepaDATA);
+
+                if (lenOrders) {
+                    if (orders[0].meta.state != "pending") {
+                        console.log(orders[0]);
+                        let expectedAmt = String(parseInt(currentInvest.data.split("X")[1]) + parseInt( currentInvest.data.split("X")[2]));
+                        let gotAmt = orders[0].meta.receivedAmount;
+                        console.log(expectedAmt, gotAmt, currentInvest.data.split("X")[1], currentInvest.data.split("X")[2]);
+                        if (expectedAmt == gotAmt) {
+                            clearInterval(intervalID);
+
+                            Idb = await saveInvestment(currentInvest);
+                            console.log({
+                                currentInvest: currentInvest,
+                                Idb: Idb,
+                                orders: orders,
+                            });
+
+                            currentInvest.status = await executeInvestment(
+                                currentInvest,
+                                orders[0]
+                            );
+                       
+                            Idb = await saveInvestment(currentInvest);
+                            resetInvest();
+                        } else {
+                            console.log(
+                                "something went wrong",
+                                currentInvest,
+                                orders
+                            );
+                            alert(
+                                "Something Went Wrong. Contact Support 0-800-support"
+                            );
+                            clearInterval(intervalID);
+                        }
+                        console.log('investment executed successfully', currentInvest);
+                    }
+                }
+            }
+            console.log("tick");
+        }, 5000);
+
+    };
 </script>
 
 {#if isOnMountLoading}
@@ -543,24 +676,24 @@ const signInitInvest = async () => {
                 </div>
                 <div class="col-2">
                     <button
-                        class="btn btn-add-entity"
+                        class="btn btn-new-org center-block"
                         disabled
                         on:click={() => {
                             alert("disabled in explorer");
                         }}
                     >
+
+
                         <i class="bi bi-plus-circle"> New Organisation </i>
                     </button>
                 </div>
-                <div class="col-2">
+                <div class="col-2 center-block text-center">
                     <button
-                        class="btn btn-add-entity"
+                        class="btn btn-invest"
                         on:click={() => {
                             onShowPopup("invest");
                         }}
-                    >
-                        <i class="bi bi-currency-euro"> Invest </i>
-                    </button>
+                    ><i class="bi bi-currency-euro">Invest</i></button>
                 </div>
                 <div class="col-2">
                     <div class="form-check form-switch">
@@ -705,132 +838,158 @@ const signInitInvest = async () => {
                 onClosed={() => onPopupClose("invest")}
             >
                 <div class="container container-popslot">
-                    <br>
+                    <br />
                     <div class="form-group">
-                    <div class="row">
-
-                        <div class="col-6">
-                            <div class="form-label"> Organization</div>
-                            <div class="row"> 
-                                <div class="col-10">
-                                    <input
-                                    type="text"
-                                    bind:value={investInAddr}
-                                    on:input={investUpdate}
-                                    class="form-control"
-                                    id="inputFieldPopup"
-                                    placeholder="address of Entity you want to invest in"
-                                />
-                                </div>
-                                <div class="col-2">
-                                    {#if isInvestable}  
-                                    <i class="bi bi-check2-circle color-green bi-invest" /> 
+                        <div class="row">
+                            <div class="col-6 float-start">
+                                <div class="form-label">Organization</div>
+                                <div class="row">
+                                    <div class="col-10">
+                                        <input
+                                            type="text"
+                                            bind:value={investInAddr}
+                                            on:input={investUpdate}
+                                            class="form-control"
+                                            id="inputFieldPopup"
+                                            placeholder="address of Entity you want to invest in"
+                                        />
+                                    </div>
+                                    <div class="col-2 text-center center ">
+                                        {#if isInvestable}
+                                            <i
+                                                class="bi bi-check2-circle color-green bi-invest"
+                                            />
                                         {:else}
-                                    <i class="bi bi-x-circle-fill color-red bi-invest"/>    
-                                {/if}
+                                            <i
+                                                class="bi bi-x-circle-fill color-red bi-invest"
+                                            />
+                                        {/if}
+                                    </div>
                                 </div>
                             </div>
-                            </div>
-                                             
 
-                        <div class="col-3">
-                            <div class="form-label"> Investment </div>
-
-                            <input
-                            type="number"
-                            min=0
-                            bind:value={amountToInvest}
-                            class="form-control"
-                            id="inputFieldPopup"
-                            placeholder="€ investment amount"
-                        />
-                        </div>
-                        
-                        <div class="col-3">
-                            <div class="form-label"> Gas Refil (optional)</div>
+                            <div class="col-3 text-center">
+                                <div class="form-label">Investment</div>
 
                                 <input
-                                type="number"
-                                min=0
-                                bind:value={amtGas}
-                                class="form-control"
-                                id="inputFieldPopup"
-                                placeholder="€ 0"
-                            />
-                        </div>
+                                    type="number"
+                                    min="0"
+                                    bind:value={amountToInvest}
+                                    class="form-control"
+                                    id="inputFieldPopup"
+                                    placeholder="€ investment amount"
+                                />
+                            </div>
 
+                            <div class="col-3">
+                                <div class="form-label">
+                                    Gas Refil (optional)
+                                </div>
+
+                                <input
+                                    type="number"
+                                    min="0"
+                                    bind:value={amtGas}
+                                    class="form-control"
+                                    id="inputFieldPopup"
+                                    placeholder="€ 0"
+                                />
                             </div>
                         </div>
-
                     </div>
-                    <div class="row">
-                        <br>
-                        <div class="col-6">
-                             <p class="invest instructions">
-                                <br>
-                                These are Instructions <br>
-                                <b> Step 1 </b> Do the hookey pockey <br>
-                                <b> Step 2 </b> Dirink Water
-                             </p>
-                        </div>
-                        <div class="col-6">
-                            <div class="row">
-                                <div class="col-10">
-                                    <br>
-                                    <input
+                </div>
+                <div class="row">
+                    <br />
+                    <div class="col-5">
+                        <p class="invest instructions">
+                            <br />
+                            These are Instructions <br />
+                            <b> Step 1 </b> Do the hookey pockey <br />
+                            <b> Step 2 </b> Dirink Water
+                        </p>
+                    </div>
+                    <div class="col-7">
+                        <div class="row">
+                            <div class="col-10">
+                                <br />
+                                <input
                                     type="text"
                                     class="form-control sepa-data-field"
-                                    value={
-                                  isInvestable ? `I ${addrSlice($signerAddress)} invest ${amountToInvest} in ${addrSlice(investInAddr)} ${amtGas}` : "n/a"
-                                    }
+                                    value={isInvestable
+                                        ? `${addrSlice(
+                                              $signerAddress
+                                          )}${addrSlice(
+                                              investInAddr
+                                          )}X${amountToInvest}X${amtGas}X${currentUserNonce}`
+                                        : "I [addr] invest in [Org.] [amount] [gas] [transaction nr.]"}
                                     on:change={setSEPAdata}
                                     id="inputFieldPopup"
                                     readOnly
                                     placeholder="SEPA description"
                                     readonly
                                 />
+                                <div class="text text-muted">
+                                    <br />
+                                    <b> Transaction data constituted as as: </b> <br />
+                                    * first and last 4 characters of your and target
+                                    organisation addresses  <b>{addrSlice(
+                                        $signerAddress
+                                    )}</b><i>X</i><b>{addrSlice(investInAddr)}</b><br />
+                                    + investment amount <b>{amountToInvest}</b>
+                                    <br />
+                                    + gas deposit value <b>{amtGas}</b> <br />
+                                    + transaction count <b>{currentUserNonce}</b>
                                 </div>
-                                <div class="col-2">
-                                    <br>
-                                    <button class="btn btn-outline btn-copy" on:click={ () => {alert("Copy button is unavailable outside normal working hours.\nPlease proceed to copy manually.\nThank you for your understanding!")} }>
-                                        <i class="bi bi-clipboard bi-copy"></i>
-                                    </button>
-                                </div>
-                        </div>
-                        </div>
-                        <div class="row">
+                            </div>
                             <div class="col-2">
-                                <br>
-                                <div class="row">
-                                    <div class="col-12 btn-invest-col">
-                                        {#if investmentInProgress}
-                                        <button class="btn btn-sign-reset"
-                                        on:click={resetInvest}
+                                <br />
+                                <button
+                                    class="btn btn-outline btn-copy"
+                                    on:click={() => {
+                                        alert(
+                                            "Copy button is unavailable outside normal working hours.\nPlease proceed to copy manually.\nThank you for your understanding!"
+                                        );
+                                    }}
+                                >
+                                    <i class="bi bi-clipboard bi-copy" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-2">
+                            <br />
+                            <div class="row">
+                                <div class="col-12 btn-invest-col">
+                                    {#if investmentInProgress}
+                                        <button
+                                            class="btn btn-sign-reset"
+                                            on:click={resetInvest}
                                         >
-                                         Reset
-                                        </button>   
-                                        {:else}
-                                        <button class="btn btn-sign-invest"
-                                        on:click={signInitInvest}
+                                            Reset
+                                        </button>
+                                    {:else}
+                                        <button
+                                            class="btn btn-sign-invest"
+                                            on:click={signInitInvest}
                                         >
-                                         <b> Sign Investment </b>
-                                        </button>   
-                                        {/if}
-                                    </div>
+                                            <b> Sign Investment </b>
+                                        </button>
+                                    {/if}
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
             </Modal>
         </div>
     </div>
 {/if}
 
 <style>
-
-.btn-invest-col {
-    margin-top: 8px;
-}
+    .btn-invest-col {
+        margin-top: 8px;
+    }
 
     :root {
         --main-blue: #1e51da;
@@ -844,7 +1003,6 @@ const signInitInvest = async () => {
 
     .sepa-data-field {
         display: block;
-
     }
 
     .btn-copy {
@@ -860,7 +1018,7 @@ const signInitInvest = async () => {
 
     .btn-sign-invest:hover {
         color: var(--main-green);
-        font-family: 'domine';
+        font-family: "domine";
         border-color: var(--main-light);
     }
 
@@ -869,7 +1027,6 @@ const signInitInvest = async () => {
         border-color: var(--main-peach);
         color: var(--main-green);
     }
-
 
     .modalMain {
         width: 1000px;
@@ -898,12 +1055,31 @@ const signInitInvest = async () => {
     }
 
     .btn-add-entity {
+        float: right;
+        border: 1px solid;
+        border-color: var(--main-green);
+        color: var(--main-peach);
+    }
+
+    .btn-new-org {
+        float: right;
+        border: 1px solid;
+        border-color: var(--main-green);
+        color: var(--main-peach);
+    }
+    
+    .btn-invest {
+        float: right;
         border: 1px solid;
         border-color: var(--main-green);
         color: var(--main-peach);
     }
 
     .btn-add-entity:hover {
+        color: var(--main-green);
+    }
+    
+    .btn-invest:hover {
         color: var(--main-green);
     }
 
