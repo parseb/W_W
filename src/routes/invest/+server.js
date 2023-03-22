@@ -50,7 +50,7 @@ const RPC = {
     console.log(`${chainID} - ${forWho} - ${toWhere} =$internal t - ${internaltoken}`);
 
 
-    let RPC_URL = RPC[chainID];
+    let RPC_URL = RPC[String(chainID)];
 
     let WalletPVK = {
         100: GNO_PVK,
@@ -59,6 +59,8 @@ const RPC = {
 
     // if (! RPC_URL) throw error(422, 'No RPC for provided Chain ID');
     const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    await provider.ready;
+    console.log('got provider', provider);
 
     // if(! ( ethers.utils.isAddress(forWho) && ethers.utils.isAddress(toWhere) && ethers.utils.isAddress(internaltoken) ) )  throw error(422, 'Bad Address Provided'); 
 
@@ -66,6 +68,8 @@ const RPC = {
     // const verifySigner = ethers.utils.recoverAddress(hashMessage(message),value)
 
     let Wallet = new ethers.Wallet(WalletPVK[chainID], provider); /// not bad not terrible
+    console.log('got Wallet', Wallet);
+
 
     const AA = new ethers.Contract(
         AddrX[chainID].AbstractA,

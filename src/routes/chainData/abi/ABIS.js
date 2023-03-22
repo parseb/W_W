@@ -1,12 +1,5 @@
 export const AddrX = {
-  10200 : { /// chiado gnosis testnet
-    ODAO: "0x8d8ac2ba0b27caeb13b1423ed7097428ea454796",
-    MembraneRegistry: "0xd1e4aa3c8354d2feb5ca03c86dacfa5bfd17b8ca",
-    MEMBERregistry: "0x17b712bc840a9076f3dd01c620b9b7e92e77fee1", //  "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-    AbstractA: "0x1ecec508df45b917443dfedbe5fac525d739d989",
-    RPCURL: "https://rpc.chiadochain.net",
-    EUR: "0xb106ed7587365a16b6691a3D4B2A734f4E8268a2"
-  },
+
   100 : { ///gnosis
     ODAO: "0x3ee92aab242cefdbd05d3e49ff53132d0b99c665",
     MembraneRegistry: "0x89a775ee7de63e92b1121586c785ee3c72265500",
@@ -25,24 +18,37 @@ export const AddrX = {
     MEMBERregistry: "0x06ea1e3ce4a2cf4f0b4e699fe65110713e889e12",
     AbstractA: "0xbc75be629709c80c79dceab1c5dd4134f5e17836",
     RPCURL: "http://127.0.0.1:8545"  
-  }  
+  },
+  10200 : { /// chiado gnosis testnet
+    ODAO: "0x0893f67758bcff6e0e3871e9c89477fc59d1c2c2",
+    MembraneRegistry: "0xfbdadca21e6281bf79eab915f7513091b3dc3bf3",
+    MEMBERregistry: "0xc13a47f85854341abb7a08827fb82f6361621d1f", 
+    AbstractA: "0x9934c8c8f20c2f3064021bb03e3528599541ea88",
+    RPCURL: "https://127.0.0.1:8545", //"https://rpc.chiadochain.net",
+    EUR: "0xb106ed7587365a16b6691a3D4B2A734f4E8268a2"
+  }
 };
 
 
-/// chiado
+// /// chiado
+// == Logs ==
+//   Member --- 10200 __________####_____ : 0xc13a47f85854341abb7a08827fb82f6361621d1f
+//   ODAO --- 10200 __________####_____ : 0x0893f67758bcff6e0e3871e9c89477fc59d1c2c2
+//   memBRAINE --- 10200 __________####_____ : 0xfbdadca21e6281bf79eab915f7513091b3dc3bf3
+//   Abstract A --- 10200 __________####_____ : 0x9934c8c8f20c2f3064021bb03e3528599541ea88
+//   Meeting POAP --- 10200 __________####_____ : 0xddd82edc6a5532137513ca875aab7527f120b21b
+//   ----------populate-----------
+//   -----------------------------
+//   changing membrane 150460078887702268  --- expected ---  150460078887702268
+//   Garden DAO --- 10200 __________####_____ : 0x6fe1c875b0574cc4aa54fa06c538948dd1efce21
+//   Membrane ID --- 10200 __________####_____ : 150460078887702268
+//   Garden DAO --- 10200 __________####_____ : 0x6fe1c875b0574cc4aa54fa06c538948dd1efce21
+//   Internal Token  --- 10200 __________####_____ : 0x44df0a204e0f2882ce647fe4561eb4503bd12493
 
-// Member --- 10200 __________####_____ : 0x17b712bc840a9076f3dd01c620b9b7e92e77fee1
-// ODAO --- 10200 __________####_____ : 0x8d8ac2ba0b27caeb13b1423ed7097428ea454796
-// memBRAINE --- 10200 __________####_____ : 0xd1e4aa3c8354d2feb5ca03c86dacfa5bfd17b8ca
-// Abstract A --- 10200 __________####_____ : 0x1ecec508df45b917443dfedbe5fac525d739d989
-// Meeting POAP --- 10200 __________####_____ : 0x0e36e5eec7519ce05a8d7e2d0299cd998c852719
-// ----------populate-----------
-// -----------------------------
-// changing membrane 503341974626749334  --- expected ---  503341974626749334
-// Garden DAO --- 10200 __________####_____ : 0xdb310e87c7384946d68c6061afc285935e8690f5
-// Membrane ID --- 10200 __________####_____ : 503341974626749334
-// Garden DAO --- 10200 __________####_____ : 0xdb310e87c7384946d68c6061afc285935e8690f5
-// Internal Token  --- 10200 __________####_____ : 0xa595db5807cbe12d44a5330c0d685f01b5537c46
+// http://guild.xyz/walllaw
+// LinkeGaard.eth
+// Linkebeek community garden incorporated project. Come talk to us every Sunday morning from 9:00 to 13:00 at our on-site stall on Groen Straße nr 306. Simple membership gives access to our garden premises as well as our planning and execution resources.// http://explorer.walllaw.xyz/LinkeGaard.eth
+/// {"workspace":{"description":"this is where we budget things","link":"http://linktoprojectedneedsandreviews.com"}, "governance":{"description":"this is where we talk about things", "link":"http://www.discord.com"}}
 
 export const ERC20ABI = [
   {
