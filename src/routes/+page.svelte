@@ -118,7 +118,9 @@
     let lastAt;
     let currentUserNonce;
     let currentInternalTInvest;
-
+    let isM;
+    let activeIStep;
+    let currentInvest = { status: 1};
     export let data;
 
 
@@ -317,8 +319,11 @@
     let showPopupInvest = false;
 
     const onShowPopup = (id) => {
-        if (id == "invest") showPopupInvest = true;
-        if (id == "addM") showPopupAddM = true;
+        if (id == "invest") { 
+            showPopupInvest = true;
+            resetInvest();
+        }
+            if (id == "addM") showPopupAddM = true;
     };
 
     const onPopupClose = (id) => {
@@ -364,7 +369,7 @@
                 IinstanceDAOABI,
                 $provider
             );
-            let isM = await instance.isMember($signerAddress);
+            isM = await instance.isMember($signerAddress);
             return isM;
         } else {
             return false;
@@ -372,7 +377,8 @@
     };
 
     const successTransaction = async () => {
-        alert("much success");
+        isM = true;
+
     };
 
     const mintMembership = async (addr) => {
@@ -384,40 +390,7 @@
         tx.wait(1).then(() => {
             successTransaction();
         });
-        //     const domain = { name: "WalllaW Signer", version: '0.0.1', chainId: toString($chainId), atAddress: AddrX[$chainId].ABstractA }
-        // // const domain = {}
-        // const UserOperationType = {
-        //     Operation: [
-        //     { name: 'sender', type: 'address' },
-        //     { name: 'nonce', type: 'uint256' },
-        //     { name: 'daoInstance', type: 'address' },
-        //     { name: 'callData', type: 'bytes' },
-        //     { name: 'signature', type: 'bytes' } ///empty
-        //     ]
-        // }
 
-        // let D = new ethers.Contract(addr, IinstanceDAOABI, $signer);
-        // let t = await D.populateTransaction.mintMembershipToken(addr);
-        // let pt  = await preprocessTransaction(t);
-        // console.log('transaction -- ', t, 'procesed ', pt);
-
-        // let actionString = `minting membership for\n${pt.daoInstace}\nwith nonce: ${pt.nonce}`;
-        // let actionSig = $contracts.AbstractA.functions.mintMembershipToken.signature;
-        // console.log('action sig ', 'action sig');
-
-        // let signedAction = await $signer.signMessage(actionString);
-        // console.log(signedAction);
-
-        // console.log(s);
-        // // nonce , sender, daoinstace, calldata
-        // /// to sign
-
-        // // let signedTransaction = await $signer.signMessage(pt);
-        // console.log('signed ', signedTransaction);
-
-        // let signedT = await $signer.signMessage("i am signing this mint membership personal sign message");
-
-        // await D.mintMembershipToken($signerAddress);
     };
 
     const addrSlice = (inAddr) => {
@@ -434,6 +407,10 @@
 
     const resetInvest = async () => {
         await seTlastAt(investInAddr);
+
+        currentInvest = {
+            status: 1
+        };
 
         investmentInProgress = false;
         isInvestable = false;
@@ -479,6 +456,7 @@
                 signature: investment.signature,
                 status: investment.status,
                 data: investment.data,
+                instance: investment.targetorg
             }
         );
 
@@ -502,8 +480,7 @@
     };
 
     const signInitInvest = async () => {
-        let currentInvest = {};
-        currentInvest.status = 0;
+
         investmentInProgress = isInvestable;
         await setSEPAdata();
         console.log("sepa data : ", sepaDATA);
@@ -514,8 +491,9 @@
         currentInvest = {
             data: sepaDATA,
             signature: signedSEPA,
-            status: 1,
-            targetorg: investInAddr,
+            status: 2,
+            targetorg: investInAddr
+
         };
 
         const client = new MoneriumClient();
@@ -544,6 +522,15 @@
                         if (expectedAmt == gotAmt) {
                             clearInterval(intervalID);
 
+                            currentInvest = {
+            data: sepaDATA,
+            signature: signedSEPA,
+            status: 3,
+            targetorg: investInAddr
+
+        };
+
+
                             Idb = await saveInvestment(currentInvest);
                             console.log({
                                 currentInvest: currentInvest,
@@ -557,7 +544,6 @@
                             );
                        
                             Idb = await saveInvestment(currentInvest);
-                            resetInvest();
                         } else {
                             console.log(
                                 "something went wrong",
@@ -569,11 +555,11 @@
                             );
                             clearInterval(intervalID);
                         }
-                        console.log('investment executed successfully', currentInvest);
+                        console.log('Yay! Tnvestment executed successfully', currentInvest);
                     }
                 }
             }
-            console.log("tick");
+            console.log("Waiting...");
         }, 5000);
 
     };
@@ -798,7 +784,9 @@
                                             </div>
                                         {/each}
                                     {/if}
+                                    <br>
                                 </div>
+                            
                                 {#if gotMembrane}
                                     {#await isMemberOf(mintMembershipAddress) then isM}
                                         {#if !isM}
@@ -818,7 +806,7 @@
                                             {/if}
                                         {:else}
                                             <br />
-                                            <b> Already Member </b>
+                                            <b class="already-member-text"> Already Member 👏 </b> 
                                         {/if}
                                     {/await}
                                 {/if}
@@ -868,7 +856,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-3 text-center">
+                            <div class="col-3">
                                 <div class="form-label">Investment</div>
 
                                 <input
@@ -890,6 +878,7 @@
                                     type="number"
                                     min="0"
                                     bind:value={amtGas}
+                                    default="0"
                                     class="form-control"
                                     id="inputFieldPopup"
                                     placeholder="€ 0"
@@ -900,21 +889,22 @@
                 </div>
                 <div class="row">
                     <br />
-                    <div class="col-5">
-                        <p class="invest instructions">
-                            <br />
-                            These are Instructions <br />
-                            <b> Step 1 </b> Do the hookey pockey <br />
-                            <b> Step 2 </b> Dirink Water
-                        </p>
+                    <div class="col-6">
+                        <div class="invest instructions">
+                            <br>
+                            <!-- <p class="instr-title">Steps</p> -->
+                            <b class="step { currentInvest.status == 1 ? 'step-active': '' }"> Step 1  Complete and sign the form </b><br />
+                            <b class="step { currentInvest.status == 2 ? 'step-active': '' }"> Step 2 Send a SEPA transfer with memo -></b> <br />
+                            <b class="step { currentInvest.status == 3 ? 'step-active': '' }"> Step 3 Investment Complete 🎉</b>  
+                        </div>
                     </div>
-                    <div class="col-7">
+                    <div class="col-6">
                         <div class="row">
                             <div class="col-10">
                                 <br />
                                 <input
                                     type="text"
-                                    class="form-control sepa-data-field"
+                                    class="form-control sepa-data-field { currentInvest.status == 2 ? 'highl-sepa' : ''}"
                                     value={isInvestable
                                         ? `${addrSlice(
                                               $signerAddress
@@ -928,7 +918,7 @@
                                     placeholder="SEPA description"
                                     readonly
                                 />
-                                <div class="text text-muted">
+                                <div class="text text-field-expl">
                                     <br />
                                     <b> Transaction data constituted as as: </b> <br />
                                     * first and last 4 characters of your and target
@@ -938,7 +928,7 @@
                                     + investment amount <b>{amountToInvest}</b>
                                     <br />
                                     + gas deposit value <b>{amtGas}</b> <br />
-                                    + transaction count <b>{currentUserNonce}</b>
+                                    + transaction nr. (nonce) <b>{currentUserNonce}</b>
                                 </div>
                             </div>
                             <div class="col-2">
@@ -1001,8 +991,54 @@
         --main-black: #101011;
     }
 
+    .already-member-text {
+        color: var(--main-green);
+    }
+
+    /* .instr-title {
+        font-weight:950;
+        font-size: 24px;
+
+    } */
+
+    .text-field-expl {
+        font-size: 18px;
+    }
+    
+    .form-label {
+        font-weight: 900;
+        font-size: 18px;
+        color: var(--main-peach);
+    }
+
+    .step {
+        font-weight:250px;
+        font-size: 16px;
+    }
+
+    .step-active {
+        color: var(--main-peach);
+        font-weight: 300px;
+        font-size: 20px;
+    }
+
     .sepa-data-field {
         display: block;
+    }
+
+    .highl-sepa {
+        border-width: 6px;
+        border-color: var(--main-peach);
+        font-weight: bolder;
+    }
+    
+    .color-green {
+        color: var(--main-green);
+        font-weight: bolder;
+    }
+
+    .color-red {
+        color: var(--main-peach)
     }
 
     .btn-copy {
@@ -1016,6 +1052,20 @@
         color: var(--main-peach);
     }
 
+    .btn-mint {
+        border: 1px solid;
+        border-color: var(--main-green);
+        color: var(--main-peach);
+    }
+
+
+    .btn-mint:hover {
+        color: var(--main-green);
+        font-family: "domine";
+        border-color: var(--main-light);
+    }
+
+    
     .btn-sign-invest:hover {
         color: var(--main-green);
         font-family: "domine";
