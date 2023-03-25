@@ -6,7 +6,7 @@ export const AddrX = {
     MEMBERregistry: "0x9d4722d668c4b790ab670c229c336389056615cb",
     AbstractA: "0x836aeb02206a49dda1738bdcdc6821ca5a74370b",
     EUR: "0xcB444e90D8198415266c6a2724b7900fb12FC56E",
-    RPCURL: "https://rpc.gnosischain.com/"  /// https://rpc.chiadochain.net
+    RPCURL: "https://rpc.gnosischain.com/"  
   },
   31337: {
     RPCURL: "http://127.0.0.1:8545",

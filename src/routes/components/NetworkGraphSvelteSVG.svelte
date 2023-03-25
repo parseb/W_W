@@ -8,12 +8,13 @@
     import { schemeCategory10 } from "d3-scale-chromatic";
     import { select, selectAll } from "d3-selection";
     import { drag } from "d3-drag";
-    import {
+    import { 
       forceSimulation,
       forceLink,
       forceManyBody,
       forceCenter,
     } from "d3-force";
+
   
     import {
       defaultEvmStores,
@@ -25,6 +26,17 @@
       signerAddress,
       contracts,
     } from "svelte-ethers-store";
+
+    import {
+        getFirestore,
+        collection,
+        addDoc,
+        query,
+        getDoc,
+        setDoc,
+        updateDoc,
+        increment,
+    } from "firebase/firestore";
   
     import { ethers } from "ethers";
   
@@ -55,6 +67,11 @@
     };
   
     export let graph;
+    export let currentUserData;
+    export let doc;
+    export let db;
+
+    let hoveredName;
   
     let svg;
     let width = 800;
@@ -73,7 +90,42 @@
     let membraneTokenSymbols = [];
     let childrenOfSelected = [];
     let isEndpoint;
+    let hP = {loaded: false}
+    let newN;
   
+    const getCurrentUserData = async () => {
+        let currentUserRef = doc(db, "users", $signerAddress);
+        currentUserData = await getDoc(currentUserRef);
+        currentUserData = currentUserData.data();
+        return currentUserData;
+    };
+
+    const setAddrName = async (addrValue, newName) => {
+        let currentUserRef = doc(db, "users", $signerAddress);
+        if (! addrValue) addrValue = hP.id;
+        currentUserData.aliases[addrValue] = newName;
+        hP.name = newName;
+        hP = hP;
+
+        await updateDoc(currentUserRef, currentUserData);
+        let newDoc = await getDoc(currentUserRef);
+        await getCurrentUserData();
+        console.log("alias set or updated for ", addrValue, "as ", newName);
+    };
+
+    export const getNameFormAddress = async (givenAddr) => {
+        if ( currentUserData.aliases[givenAddr] );
+        if (!currentUserData) currentUserData = await getCurrentUserData();
+        let name = currentUserData.aliases[givenAddr]
+            ? currentUserData.aliases[givenAddr]
+            : givenAddr;
+        console.log("name", name);
+        currentUserData = currentUserData;
+        return name;
+    };
+
+
+
     onMount(() => {
       simulation = d3
         .forceSimulation(nodes)
@@ -125,6 +177,36 @@
         node.y = transform.applyY(node.y);
       }
       return node;
+    }
+
+    const editNameVal = async (idAddr, newName) => {
+      console.log("saving name change for", hP );
+      await setAddrName(idAddr, newName);
+      hP.name = newName;
+
+      hP = hP;
+    }
+
+    
+
+    const hoveredPoint = async (p) => {
+      hoveredName = currentUserData.aliases[p.id]
+      if (hP) hP= {}
+      if (! hoveredName ) hoveredName = await getNameFormAddress(p.id);
+      
+
+      hP = {
+        id: p.id,
+        name: hoveredName,
+        baseBalance:  p.baseBalance,
+        internalBalance: p.internalBalance,
+        baseShare: p.baseShare,
+        loaded: true
+      }
+      console.log( hP, hoveredName)
+
+      hP = hP;
+
     }
   
     function dragstarted(currentEvent) {
@@ -272,12 +354,12 @@
     let isSelectedId;
     const onSelectedDAO = async (whatIsSelected) => {
       isSelectedAddr = whatIsSelected;
-      await getSelectedBasicInfo(whatIsSelected);
-      let circle = document.getElementById(whatIsSelected);
-      if (isSelectedId)
-        document.getElementById(isSelectedId).classList.remove("isSelectedNode");
-      circle.classList.add("isSelectedNode");
-      isSelectedId = whatIsSelected;
+      // await getSelectedBasicInfo(whatIsSelected);
+      // let circle = document.getElementById(whatIsSelected);
+      // if (isSelectedId)
+      //   document.getElementById(isSelectedId).classList.remove("isSelectedNode");
+      // circle.classList.add("isSelectedNode");
+      // isSelectedId = whatIsSelected;
     };
   
     const getSymbolOfTokenAddr = async (addr) => {
@@ -296,7 +378,7 @@
         <!-- SVG was here -->
         <svg bind:this={svg} {width} {height}>
           {#each links as link}
-            <g stroke="#999" stroke-opacity="0.6">
+            <g stroke="#999" stroke-opacity="0.9">
               <line
                 x1={link.source.x}
                 y1={link.source.y}
@@ -314,7 +396,8 @@
               class="node node-type{point.group}"
               id={point.id}
               on:click={onSelectedDAO(point.id)}
-              r="5"
+              on:mouseover={hoveredPoint(point)}
+              r={point.id == hP.id ? "10":"7"}
               fill={colourScale(point.group)}
               cx={point.x}
               cy={point.y}
@@ -324,11 +407,40 @@
             </circle>
           {/each}
         </svg>
+        <div class="mouseover-data">
+          {#key hP}
+          <h5 class="mod hp-name">name: <b> <input class="hp-name-i" type="text" placeholder={ hoveredName  } bind:value={newN}   on:blur={editNameVal(hP.id, newN)}> </b></h5>
+          <h5 class="mod">address: {hP.id}</h5>
+          <h5 class="mod">base $: {hP.baseBalance }</h5>
+          <h5 class="mod">internal $: {hP.internalBalance }</h5>
+          <h5 class="mod">~of base %: {hP.baseShare}</h5>
+
+          {/key}
       </div>
+        <div class="container">
+         
+        </div>
+      </div>
+
+      <p>afetr svg</p>
     </div>
 
   </div>
-  
+          <!-- displayData.nodes.push({
+            id: nodeaddr,
+            group: isEndpoint,
+            baseToken: baseTaddr,
+            internalToken: internalTaddr,
+            baseBalance:  ethers.utils.formatEther(baseTokenBalance),
+            internalBalance: ethers.utils.formatEther(internalTokenBalance),
+            baseShare: baseTpercent,
+        });
+
+        displayData.links.push({
+            source: nodeaddr,
+            target: parentAddr,
+            group: 1,
+        }); -->
   <style>
 
 :root {
@@ -341,10 +453,40 @@
         --main-black: #101011;
     }
 
+    .hp-name-i {
+      background-color: rgba(0, 0, 0,0);
+      border-right:0px;
+      border-top: 0px;
+      border-bottom: 3px;
+      border-color: var(--main-peach);
+      border-left: 0px;
+      color: var(--main-peach);
+    }
+
+    .hp-name-i:hover {
+      color:var(--main-light);
+    }
+
+
+    .hp-name-i::placeholder {
+      color: var(--main-peach);
+      font-weight: 900;
+    }
+
+    .mod {
+      color: #c8ccc2;
+      opacity: 0.2;
+    }
+    .mouseover-data {
+      z-index: 1;
+      margin-top:-180px;
+      margin-left: 20px;
+    }
+
     svg {
       float: center;
       width: 100%;
-      height: 120%;
+      height: 75%;
     }
     
     .col-graph {
@@ -356,8 +498,8 @@
     }
   
     svg {
-      background-color: var(--dark-grey);
-      opacity: 18%;
+      background-color: rgba(34, 35, 35, 0.2);
+      
       margin-top: 10px;
     }
   

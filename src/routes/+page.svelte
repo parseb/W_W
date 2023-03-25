@@ -189,7 +189,7 @@
         console.log("alias set or updated for ", addrValue, "as ", newName);
     };
 
-    const getNameFormAddress = async (givenAddr) => {
+    export const getNameFormAddress = async (givenAddr) => {
         if (!currentUserData) currentUserData = await getCurrentUserData();
         let name = currentUserData.aliases[givenAddr]
             ? currentUserData.aliases[givenAddr]
@@ -309,7 +309,7 @@
 
         setAddrName(
             String(ethers.constants.AddressZero),
-            "addr0000",
+            "blockchain",
             currentUserData
         );
 
@@ -392,6 +392,8 @@
     };
 
     const setDisplayDataForRoot = async (addrI) => {
+        if (! $contracts.ODAO ) await initContracts();
+
         let Dinstance = new ethers.Contract(addrI, IinstanceDAOABI, $provider);
         let onChainLastAt = await Dinstance.lastAt();
         if ("dbLastAt" != onChainLastAt) {
@@ -1195,7 +1197,7 @@
                 {#if displayData.nodes.length > 0}
                     <div class="chart">
                         {#key displayData }
-                        <Graph graph={displayData} />
+                        <Graph graph={displayData}  currentUserData={currentUserData} doc={doc} db={db} />
                         {/key}
                     </div>
                 {:else}
@@ -1220,6 +1222,9 @@
 {/if}
 
 <style>
+
+
+
     .btn-invest-col {
         margin-top: 8px;
     }
