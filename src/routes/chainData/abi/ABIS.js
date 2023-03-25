@@ -20,10 +20,10 @@ export const AddrX = {
     RPCURL: "http://127.0.0.1:8545"  
   },
   10200 : { /// chiado gnosis testnet
-    ODAO: "0x0893f67758bcff6e0e3871e9c89477fc59d1c2c2",
-    MembraneRegistry: "0xfbdadca21e6281bf79eab915f7513091b3dc3bf3",
-    MEMBERregistry: "0xc13a47f85854341abb7a08827fb82f6361621d1f", 
-    AbstractA: "0x9934c8c8f20c2f3064021bb03e3528599541ea88",
+    ODAO: "0x133cc2245e793c2805215cb77d177dd9b58b86fb",
+    MembraneRegistry: "0x22d0ddddcd79d39d56496206ffd5568cd59ed61e",
+    MEMBERregistry: "0x936eb5b94436e2986a2da6a9e3a8ab031db00b97", 
+    AbstractA: "0xd5da86a54cb12a68d374994a39398647e6bae8fd",
     RPCURL: "https://127.0.0.1:8545", //"https://rpc.chiadochain.net",
     EUR: "0xb106ed7587365a16b6691a3D4B2A734f4E8268a2"
   }
@@ -32,20 +32,20 @@ export const AddrX = {
 
 // /// chiado
 // == Logs ==
-//   Member --- 10200 __________####_____ : 0xc13a47f85854341abb7a08827fb82f6361621d1f
-//   ODAO --- 10200 __________####_____ : 0x0893f67758bcff6e0e3871e9c89477fc59d1c2c2
-//   memBRAINE --- 10200 __________####_____ : 0xfbdadca21e6281bf79eab915f7513091b3dc3bf3
-//   Abstract A --- 10200 __________####_____ : 0x9934c8c8f20c2f3064021bb03e3528599541ea88
-//   Meeting POAP --- 10200 __________####_____ : 0xddd82edc6a5532137513ca875aab7527f120b21b
-//   ----------populate-----------
-//   -----------------------------
-//   changing membrane 150460078887702268  --- expected ---  150460078887702268
-//   Garden DAO --- 10200 __________####_____ : 0x6fe1c875b0574cc4aa54fa06c538948dd1efce21
-//   Membrane ID --- 10200 __________####_____ : 150460078887702268
-//   Garden DAO --- 10200 __________####_____ : 0x6fe1c875b0574cc4aa54fa06c538948dd1efce21
-//   Internal Token  --- 10200 __________####_____ : 0x44df0a204e0f2882ce647fe4561eb4503bd12493
+  // Member --- 10200 __________####_____ : 0x936eb5b94436e2986a2da6a9e3a8ab031db00b97
+  // ODAO --- 10200 __________####_____ : 0x133cc2245e793c2805215cb77d177dd9b58b86fb
+  // memBRAINE --- 10200 __________####_____ : 0x22d0ddddcd79d39d56496206ffd5568cd59ed61e
+  // Abstract A --- 10200 __________####_____ : 0xd5da86a54cb12a68d374994a39398647e6bae8fd
+  // Meeting POAP --- 10200 __________####_____ : 0x9ef69bb9163b55e964bc53e3ae53b6615270e2ce
+  // ----------populate-----------
+  // -----------------------------
+  // changing membrane 742657821882937903  --- expected ---  742657821882937903
+  // Garden DAO --- 10200 __________####_____ : 0xa719f25538d4af7d767505e6637a321730cd7946
+  // Membrane ID --- 10200 __________####_____ : 742657821882937903
+  // Garden DAO --- 10200 __________####_____ : 0xa719f25538d4af7d767505e6637a321730cd7946
+  // Internal Token  --- 10200 __________####_____ : 0x09ee591f5df82f7b7121c90d844bd3d51b706f54
 
-// http://guild.xyz/walllaw
+  // http://guild.xyz/walllaw
 // LinkeGaard.eth
 // Linkebeek community garden incorporated project. Come talk to us every Sunday morning from 9:00 to 13:00 at our on-site stall on Groen Straße nr 306. Simple membership gives access to our garden premises as well as our planning and execution resources.// http://explorer.walllaw.xyz/LinkeGaard.eth
 /// {"workspace":{"description":"this is where we budget things","link":"http://linktoprojectedneedsandreviews.com"}, "governance":{"description":"this is where we talk about things", "link":"http://www.discord.com"}}
@@ -590,10 +590,132 @@ export const IDAO20ABI = [
   }
 ];
 
-export const IODAOABI = [
+export const IODAOABI =[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "DAO20Factory_",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
   {
     "inputs": [],
-    "name": "CSRvault",
+    "name": "FailedToSetMembrane",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NonR",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "who_",
+        "type": "address"
+      }
+    ],
+    "name": "NotCoreMember",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SubDAOLimitReached",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "aDAOnot",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "membraneNotFound",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "nullTopLayer",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "DAO",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "newDAOCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "parentDAO",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "subDAO",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "subDAOCreated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "DAO20FactoryAddr",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "DAO20FactoryAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MB",
     "outputs": [
       {
         "internalType": "address",
@@ -648,38 +770,13 @@ export const IODAOABI = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "id_",
-        "type": "uint256"
-      }
-    ],
-    "name": "getDAOfromID",
+    "inputs": [],
+    "name": "getMemberRegistryAddr",
     "outputs": [
       {
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "parentToken",
-        "type": "address"
-      }
-    ],
-    "name": "getDAOsOfToken",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -716,7 +813,7 @@ export const IODAOABI = [
     "outputs": [
       {
         "internalType": "address[]",
-        "name": "",
+        "name": "path",
         "type": "address[]"
       }
     ],
@@ -727,7 +824,7 @@ export const IODAOABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "toCheck",
+        "name": "toCheck_",
         "type": "address"
       }
     ],
@@ -742,7 +839,7 @@ export const IODAOABI = [
     "stateMutability": "view",
     "type": "function"
   }
-];
+]; /// non-i
 
 export const IinstanceDAOABI = [
   {
@@ -1228,6 +1325,32 @@ export const IinstanceDAOABI = [
 export const IMember1155ABI = [
   {
     "inputs": [],
+    "name": "AbstractAddr",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "DAO20FactoryAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "ExternalCallAddress",
     "outputs": [
       {
@@ -1408,6 +1531,25 @@ export const IMember1155ABI = [
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id_",
+        "type": "uint256"
+      }
+    ],
+    "name": "getctiveMembersOf",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "memb",
+        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -2323,6 +2465,145 @@ export const ABstractA = [
       }
     ],
     "stateMutability": "pure",
+    "type": "function"
+  }
+];
+
+export const DAO20Fact =  [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "AlreadyDone",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Busy",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "base",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newToken",
+        "type": "address"
+      }
+    ],
+    "name": "MadeInternal20",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "ODAOaddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "DAOaddress_",
+        "type": "address"
+      }
+    ],
+    "name": "getBaseOf",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "valueBase",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "parentToken",
+        "type": "address"
+      }
+    ],
+    "name": "getDAOsOfToken",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getOwner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "DeclaredBase_",
+        "type": "address"
+      }
+    ],
+    "name": "makeForMe",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "newDAO20",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "ODAO_",
+        "type": "address"
+      }
+    ],
+    "name": "setODAO",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ];

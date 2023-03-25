@@ -69,7 +69,10 @@
         IMember1155ABI,
         IMembraneABI,
         ABstractA,
+        DAO20Fact,
     } from "./chainData/abi/ABIS";
+
+    import Graph from "./components/NetworkGraphSvelteSVG.svelte";
 
     import { ethers, getDefaultProvider, utils } from "ethers";
     import { onMount } from "svelte";
@@ -91,6 +94,7 @@
 
     import * as onChain from "$lib/odaos";
     import { parseEther } from "ethers/lib/utils";
+    import { Jellyfish } from "svelte-loading-spinners";
 
     let isOnMountLoading;
 
@@ -120,10 +124,10 @@
     let currentInternalTInvest;
     let isM;
     let activeIStep;
-    let currentInvest = { status: 1};
+    let currentInvest = { status: 1 };
+    let displayData = { nodes: [], links: [] };
+
     export let data;
-
-
 
     /// huh
     const init = async () => {
@@ -195,10 +199,8 @@
     };
 
     const getmemberships = async () => {
-        let MRaddress = AddrX[$chainId].MEMBERregistry;
-        console.log(MRaddress);
         let MemberRegistry = new ethers.Contract(
-            MRaddress,
+            AddrX[$chainId].MEMBERregistry,
             IMember1155ABI,
             $signer
         );
@@ -211,6 +213,7 @@
     };
 
     const initContracts = async (provider) => {
+        if (!provider) await defaultEvmStores.setProvider();
         await defaultEvmStores.attachContract(
             "MembraneRegistry",
             AddrX[$chainId].MembraneRegistry,
@@ -319,11 +322,11 @@
     let showPopupInvest = false;
 
     const onShowPopup = (id) => {
-        if (id == "invest") { 
+        if (id == "invest") {
             showPopupInvest = true;
             resetInvest();
         }
-            if (id == "addM") showPopupAddM = true;
+        if (id == "addM") showPopupAddM = true;
     };
 
     const onPopupClose = (id) => {
@@ -337,16 +340,158 @@
         location.reload();
     };
 
+    const addNodeToDD = async (nodeaddr, parentAddr, dD) => {
+        // let source, target, type, baseB, internalB, members;
+        let nodeInstance = new ethers.Contract(
+            nodeaddr,
+            IinstanceDAOABI,
+            $provider
+        );
+
+        parentAddr = parentAddr ? parentAddr : ethers.constants.AddressZero; 
+        let isEndpoint = await nodeInstance.endpoint();
+        isEndpoint = isEndpoint == nodeInstance ? 2 : 1;
+        let baseTaddr = await nodeInstance.baseTokenAddress();
+        let internalTaddr = await nodeInstance.internalTokenAddress();
+        console.log(baseTaddr);
+        let baseT = new ethers.Contract(baseTaddr, ERC20ABI, $provider);
+
+        let baseTokenBalance = await baseT.balanceOf(nodeaddr);
+        let baseTTotalS = await baseT.totalSupply();
+        let baseTpercent = (baseTokenBalance / baseTTotalS) * 100;
+
+        let internalT = new ethers.Contract(internalTaddr, ERC20ABI, $provider);
+        let internalTokenBalance = await internalT.balanceOf(internalTaddr);
+
+
+        let members = await $contracts.Member1155.getctiveMembersOf(
+            nodeaddr
+        );
+        let membrane = await $contracts.MembraneRegistry.getInUseMembraneOfDAO(
+            nodeaddr
+        );
+
+        displayData.nodes.push({
+            id: nodeaddr,
+            group: isEndpoint,
+            baseToken: baseTaddr,
+            internalToken: internalTaddr,
+            baseBalance:  ethers.utils.formatEther(baseTokenBalance),
+            internalBalance: ethers.utils.formatEther(internalTokenBalance),
+            baseShare: baseTpercent,
+        });
+
+        displayData.links.push({
+            source: nodeaddr,
+            target: parentAddr,
+            group: 1,
+        });
+
+        return displayData;
+
+    };
+
+    const setDisplayDataForRoot = async (addrI) => {
+        let Dinstance = new ethers.Contract(addrI, IinstanceDAOABI, $provider);
+        let onChainLastAt = await Dinstance.lastAt();
+        if ("dbLastAt" != onChainLastAt) {
+            console.log("I need to update db");
+        }
+        let tlp = await $contracts.ODAO.getTrickleDownPath(addrI);
+        console.log("top level path", tlp);
+
+        let daoFactoryAddr = await $contracts.ODAO.DAO20FactoryAddr();
+        let Dfact = new ethers.Contract(daoFactoryAddr, DAO20Fact, $provider);
+
+        let displayData = { nodes: [], links: [] };
+
+
+        if  (tlp.length == 1) {
+            console.log("no meaninfgul path", tlp);
+            displayData = addNodeToDD(addrI, ethers.constants.ZeroAddress);
+            return displayData;
+        }
+
+        let root = tlp[1];
+        console.log("root dao", root);
+        
+        let rootInstance = new ethers.Contract(
+            root,
+            IinstanceDAOABI,
+            $provider
+        );
+        let internalT = await rootInstance.internalTokenAddress();
+        let Ds0 = await Dfact.getDAOsOfToken(internalT);
+
+        let nodeCount = Ds0.length;
+
+        if (tlp.length > 2) {
+            /// @todo bft-time-constraint limited depth. endpoint up maybe.
+            Ds0.forEach(async (D0) => {
+                let Instance = new ethers.Contract(
+                    D0,
+                    IinstanceDAOABI,
+                    $provider
+                );
+                let iToken = await Instance.internalTokenAddress();
+                let subDs = await Dfact.getDAOsOfToken(iToken);
+
+                subDs.forEach(async (sD1) => {
+                    let Instance2 = new ethers.Contract(
+                        sD1,
+                        IinstanceDAOABI,
+                        $provider
+                    );
+
+                    addNodeToDD(sD1, D0);
+                });
+
+                addNodeToDD(D0, root);
+            });
+        }
+
+        
+        displayData = displayData;
+        return displayData;
+    };
+
     const setCurrentOrgData = async (orgAddr) => {
-        orgDataLoading = true;
         console.log("setting current org data");
+        let gNode = {
+            id: ethers.constants.AddressZero,
+            group: 2,
+            baseToken: '1',
+            internalToken: '2',
+            baseBalance: '3',
+            internalBalance: '4',
+            baseShare: '5',
+        }
+
+        let gLink = {
+            source: gNode.id,
+            target: orgAddr,
+            group: 1,
+        }
+
+        displayData = { nodes: [], links: [] };
+
+        displayData = await setDisplayDataForRoot(orgAddr);
+        displayData.nodes.push(gNode);
+        displayData.links.push(gLink);
+        console.log("selected org, got display data", displayData);
+
         orgDataLoading = false;
+        return displayData;
     };
 
     const selectedOrg = async (selectedDaoAddress) => {
         selectedOx = selectedDaoAddress;
-        await setCurrentOrgData(selectedDaoAddress);
+        orgDataLoading = true;
         selected0xName = await getNameFormAddress(selectedDaoAddress);
+        if (!selected0xName) selected0xName = selectedDaoAddress;
+        
+        displayData = await setCurrentOrgData(selectedDaoAddress);
+        console.log(displayData)
     };
 
     const isEligibleForMembership = async () => {
@@ -378,7 +523,6 @@
 
     const successTransaction = async () => {
         isM = true;
-
     };
 
     const mintMembership = async (addr) => {
@@ -390,7 +534,6 @@
         tx.wait(1).then(() => {
             successTransaction();
         });
-
     };
 
     const addrSlice = (inAddr) => {
@@ -409,7 +552,7 @@
         await seTlastAt(investInAddr);
 
         currentInvest = {
-            status: 1
+            status: 1,
         };
 
         investmentInProgress = false;
@@ -430,11 +573,11 @@
     const setInternalTInvest = async () => {
         let Dinstance = new ethers.Contract(
             investInAddr,
-                IinstanceDAOABI,
-                $signer
-            );
+            IinstanceDAOABI,
+            $signer
+        );
         currentInternalTInvest = await Dinstance.internalTokenAddress();
-    }
+    };
 
     const setSEPAdata = async () => {
         await seTlastAt(investInAddr);
@@ -456,7 +599,7 @@
                 signature: investment.signature,
                 status: investment.status,
                 data: investment.data,
-                instance: investment.targetorg
+                instance: investment.targetorg,
             }
         );
 
@@ -466,21 +609,19 @@
     const executeInvestment = async (investment, order) => {
         console.log("executing investment");
         const sepa = investment.data.split("X");
-        const requestURL =  `/invest/?chainid=${$chainId}&forwho=${$signerAddress}&towhere=${investment.targetorg}&data=${investment.data}&signature=${investment.signature}&internaltoken=${currentInternalTInvest}`;
+        const requestURL = `/invest/?chainid=${$chainId}&forwho=${$signerAddress}&towhere=${investment.targetorg}&data=${investment.data}&signature=${investment.signature}&internaltoken=${currentInternalTInvest}`;
         console.log(requestURL);
         const res = await fetch(requestURL);
         if (res.ok) {
             console.log("got execute investment response: ", res);
-            return 3; /// success         
+            return 3; /// success
         } else {
-            console.error('error', res.status, res);
+            console.error("error", res.status, res);
             resetInvest();
         }
-
     };
 
     const signInitInvest = async () => {
-
         investmentInProgress = isInvestable;
         await setSEPAdata();
         console.log("sepa data : ", sepaDATA);
@@ -492,8 +633,7 @@
             data: sepaDATA,
             signature: signedSEPA,
             status: 2,
-            targetorg: investInAddr
-
+            targetorg: investInAddr,
         };
 
         const client = new MoneriumClient();
@@ -516,20 +656,26 @@
                 if (lenOrders) {
                     if (orders[0].meta.state != "pending") {
                         console.log(orders[0]);
-                        let expectedAmt = String(parseInt(currentInvest.data.split("X")[1]) + parseInt( currentInvest.data.split("X")[2]));
+                        let expectedAmt = String(
+                            parseInt(currentInvest.data.split("X")[1]) +
+                                parseInt(currentInvest.data.split("X")[2])
+                        );
                         let gotAmt = orders[0].meta.receivedAmount;
-                        console.log(expectedAmt, gotAmt, currentInvest.data.split("X")[1], currentInvest.data.split("X")[2]);
+                        console.log(
+                            expectedAmt,
+                            gotAmt,
+                            currentInvest.data.split("X")[1],
+                            currentInvest.data.split("X")[2]
+                        );
                         if (expectedAmt == gotAmt) {
                             clearInterval(intervalID);
 
                             currentInvest = {
-            data: sepaDATA,
-            signature: signedSEPA,
-            status: 3,
-            targetorg: investInAddr
-
-        };
-
+                                data: sepaDATA,
+                                signature: signedSEPA,
+                                status: 3,
+                                targetorg: investInAddr,
+                            };
 
                             Idb = await saveInvestment(currentInvest);
                             console.log({
@@ -542,7 +688,7 @@
                                 currentInvest,
                                 orders[0]
                             );
-                       
+
                             Idb = await saveInvestment(currentInvest);
                         } else {
                             console.log(
@@ -555,13 +701,15 @@
                             );
                             clearInterval(intervalID);
                         }
-                        console.log('Yay! Tnvestment executed successfully', currentInvest);
+                        console.log(
+                            "Yay! Tnvestment executed successfully",
+                            currentInvest
+                        );
                     }
                 }
             }
             console.log("Waiting...");
         }, 5000);
-
     };
 </script>
 
@@ -668,8 +816,6 @@
                             alert("disabled in explorer");
                         }}
                     >
-
-
                         <i class="bi bi-plus-circle"> New Organisation </i>
                     </button>
                 </div>
@@ -678,8 +824,8 @@
                         class="btn btn-invest"
                         on:click={() => {
                             onShowPopup("invest");
-                        }}
-                    ><i class="bi bi-currency-euro">Invest</i></button>
+                        }}><i class="bi bi-currency-euro">Invest</i></button
+                    >
                 </div>
                 <div class="col-2">
                     <div class="form-check form-switch">
@@ -784,9 +930,9 @@
                                             </div>
                                         {/each}
                                     {/if}
-                                    <br>
+                                    <br />
                                 </div>
-                            
+
                                 {#if gotMembrane}
                                     {#await isMemberOf(mintMembershipAddress) then isM}
                                         {#if !isM}
@@ -806,7 +952,9 @@
                                             {/if}
                                         {:else}
                                             <br />
-                                            <b class="already-member-text"> Already Member 👏 </b> 
+                                            <b class="already-member-text">
+                                                Already Member 👏
+                                            </b>
                                         {/if}
                                     {/await}
                                 {/if}
@@ -891,11 +1039,29 @@
                     <br />
                     <div class="col-6">
                         <div class="invest instructions">
-                            <br>
+                            <br />
                             <!-- <p class="instr-title">Steps</p> -->
-                            <b class="step { currentInvest.status == 1 ? 'step-active': '' }"> Step 1  Complete and sign the form </b><br />
-                            <b class="step { currentInvest.status == 2 ? 'step-active': '' }"> Step 2 Send a SEPA transfer with memo -></b> <br />
-                            <b class="step { currentInvest.status == 3 ? 'step-active': '' }"> Step 3 Investment Complete 🎉</b>  
+                            <b
+                                class="step {currentInvest.status == 1
+                                    ? 'step-active'
+                                    : ''}"
+                            >
+                                Step 1 Complete and sign the form
+                            </b><br />
+                            <b
+                                class="step {currentInvest.status == 2
+                                    ? 'step-active'
+                                    : ''}"
+                            >
+                                Step 2 Send a SEPA transfer with memo -></b
+                            > <br />
+                            <b
+                                class="step {currentInvest.status == 3
+                                    ? 'step-active'
+                                    : ''}"
+                            >
+                                Step 3 Investment Complete 🎉</b
+                            >
                         </div>
                     </div>
                     <div class="col-6">
@@ -904,7 +1070,10 @@
                                 <br />
                                 <input
                                     type="text"
-                                    class="form-control sepa-data-field { currentInvest.status == 2 ? 'highl-sepa' : ''}"
+                                    class="form-control sepa-data-field {currentInvest.status ==
+                                    2
+                                        ? 'highl-sepa'
+                                        : ''}"
                                     value={isInvestable
                                         ? `${addrSlice(
                                               $signerAddress
@@ -920,15 +1089,18 @@
                                 />
                                 <div class="text text-field-expl">
                                     <br />
-                                    <b> Transaction data constituted as as: </b> <br />
+                                    <b> Transaction data constituted as as: </b>
+                                    <br />
                                     * first and last 4 characters of your and target
-                                    organisation addresses  <b>{addrSlice(
-                                        $signerAddress
-                                    )}</b><i>X</i><b>{addrSlice(investInAddr)}</b><br />
+                                    organisation addresses
+                                    <b>{addrSlice($signerAddress)}</b><i>X</i><b
+                                        >{addrSlice(investInAddr)}</b
+                                    ><br />
                                     + investment amount <b>{amountToInvest}</b>
                                     <br />
                                     + gas deposit value <b>{amtGas}</b> <br />
-                                    + transaction nr. (nonce) <b>{currentUserNonce}</b>
+                                    + transaction nr. (nonce)
+                                    <b>{currentUserNonce}</b>
                                 </div>
                             </div>
                             <div class="col-2">
@@ -974,6 +1146,77 @@
             </Modal>
         </div>
     </div>
+
+    <div class="container container-graph">
+        {#if orgDataLoading}
+            <div class="row">
+                <div class="col-5" />
+                <div class="col-2">
+                    <br />
+                    <br />
+                    <Jellyfish
+                        size="260"
+                        color="#dec5a0"
+                        unit="px"
+                        duration="1s"
+                    />
+                </div>
+                <div class="col-5" />
+            </div>
+        {:else if !selectedOx}
+            <div class="row">
+                <div class="col-3" />
+                <div class="col-6">
+                    <br />
+                    <br />
+                    <h1 class="no-org text text-center">
+                        No Organization Selected
+                    </h1>
+                </div>
+                <div class="col-4" />
+            </div>
+            <div class="row">
+                <br>
+                <br>
+                <div class="col-3" />
+                <div class="col-6" >
+                    <br>
+                    <br>
+                <hr class="separator" />
+                <br>
+                <br>
+                    <h1 class="no-org text text-center"> No New Events</h1>
+            </div>
+                <div class="col-3" />
+
+            </div>
+        {:else}
+            <div class="row">
+                {#if displayData.nodes.length > 0}
+                    <div class="chart">
+                        {#key displayData }
+                        <Graph graph={displayData} />
+                        {/key}
+                    </div>
+                {:else}
+                    <div class="row">
+                        <div class="col-5" />
+                        <div class="col-2">
+                            <br />
+                            <br />
+                            <Jellyfish
+                                size="260"
+                                color="#dec5a0"
+                                unit="px"
+                                duration="1s"
+                            />
+                        </div>
+                        <div class="col-5" />
+                    </div>
+                {/if}
+            </div>
+        {/if}
+    </div>
 {/if}
 
 <style>
@@ -1004,7 +1247,15 @@
     .text-field-expl {
         font-size: 18px;
     }
-    
+
+    .no-org {
+    }
+
+    hr.separator {
+        color: var(--main-blue);
+        height: 2px;
+    }
+
     .form-label {
         font-weight: 900;
         font-size: 18px;
@@ -1012,7 +1263,7 @@
     }
 
     .step {
-        font-weight:250px;
+        font-weight: 250px;
         font-size: 16px;
     }
 
@@ -1031,14 +1282,14 @@
         border-color: var(--main-peach);
         font-weight: bolder;
     }
-    
+
     .color-green {
         color: var(--main-green);
         font-weight: bolder;
     }
 
     .color-red {
-        color: var(--main-peach)
+        color: var(--main-peach);
     }
 
     .btn-copy {
@@ -1058,14 +1309,12 @@
         color: var(--main-peach);
     }
 
-
     .btn-mint:hover {
         color: var(--main-green);
         font-family: "domine";
         border-color: var(--main-light);
     }
 
-    
     .btn-sign-invest:hover {
         color: var(--main-green);
         font-family: "domine";
@@ -1117,7 +1366,7 @@
         border-color: var(--main-green);
         color: var(--main-peach);
     }
-    
+
     .btn-invest {
         float: right;
         border: 1px solid;
@@ -1128,7 +1377,7 @@
     .btn-add-entity:hover {
         color: var(--main-green);
     }
-    
+
     .btn-invest:hover {
         color: var(--main-green);
     }
