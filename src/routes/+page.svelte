@@ -108,6 +108,7 @@
     let selected0xName;
     let ORGdata;
     let orgDataLoading;
+    let sInfVal;
 
     let mintMembershipAddress;
     let isEforM;
@@ -126,7 +127,7 @@
     let activeIStep;
     let currentInvest = { status: 1 };
     let displayData = { nodes: [], links: [] };
-
+    
     export let data;
 
     /// huh
@@ -340,7 +341,7 @@
         location.reload();
     };
 
-    const addNodeToDD = async (nodeaddr, parentAddr, dD) => {
+    const addNodeToDD = async (nodeaddr, parentAddr) => {
         // let source, target, type, baseB, internalB, members;
         let nodeInstance = new ethers.Contract(
             nodeaddr,
@@ -370,6 +371,11 @@
         let membrane = await $contracts.MembraneRegistry.getInUseMembraneOfDAO(
             nodeaddr
         );
+        let inflationPerSec = await nodeInstance.baseInflationPerSec();
+
+        // let daoFactoryAddr = await $contracts.ODAO.DAO20FactoryAddr();
+        // let Dfact = new ethers.Contract(daoFactoryAddr, DAO20Fact, $provider);
+        // let subDs = await Dfact.getDAOsOfToken(internalTaddr);
 
         displayData.nodes.push({
             id: nodeaddr,
@@ -379,6 +385,9 @@
             baseBalance:  ethers.utils.formatEther(baseTokenBalance),
             internalBalance: ethers.utils.formatEther(internalTokenBalance),
             baseShare: baseTpercent,
+            membrane: membrane,
+            inflationPerSec: inflationPerSec,
+            members: members,
         });
 
         displayData.links.push({
@@ -386,6 +395,37 @@
             target: parentAddr,
             group: 1,
         });
+
+        members.forEach( async (m) => {
+
+            let memberBaseBalance = await baseT.balanceOf(m);
+            let memberInternalBalance = await internalT.balanceOf(m);
+            let internalTsupply = await internalT.totalSupply();
+
+            displayData.nodes.push({
+            id: m,
+            group: 3,
+            baseToken: '-',
+            internalToken: '-',
+            baseBalance:  ethers.utils.formatEther(memberBaseBalance),
+            internalBalance: ethers.utils.formatEther(memberInternalBalance),
+            baseShare: `internal token share: ${(memberInternalBalance / internalTsupply ) * 100}`,
+            membrane: 'skin',
+            inflationPerSec:''
+        });
+
+        displayData.links.push({
+            source: m,
+            target: nodeaddr,
+            group: 1,
+        });
+
+        displayData = displayData;
+
+
+        })
+
+        console.log(displayData);
 
         return displayData;
 
@@ -395,6 +435,7 @@
         if (! $contracts.ODAO ) await initContracts();
 
         let Dinstance = new ethers.Contract(addrI, IinstanceDAOABI, $provider);
+        sInfVal = await Dinstance.baseInflationRate();
         let onChainLastAt = await Dinstance.lastAt();
         if ("dbLastAt" != onChainLastAt) {
             console.log("I need to update db");
@@ -405,12 +446,11 @@
         let daoFactoryAddr = await $contracts.ODAO.DAO20FactoryAddr();
         let Dfact = new ethers.Contract(daoFactoryAddr, DAO20Fact, $provider);
 
-        let displayData = { nodes: [], links: [] };
 
 
         if  (tlp.length == 1) {
             console.log("no meaninfgul path", tlp);
-            displayData = addNodeToDD(addrI, ethers.constants.ZeroAddress);
+            displayData = await addNodeToDD(addrI, ethers.constants.ZeroAddress);
             return displayData;
         }
 
@@ -445,28 +485,29 @@
                         $provider
                     );
 
-                    addNodeToDD(sD1, D0);
+                   await addNodeToDD(sD1, D0);
                 });
 
-                addNodeToDD(D0, root);
+               await addNodeToDD(D0, root);
             });
+            displayData = displayData;
         }
 
         
-        displayData = displayData;
         return displayData;
     };
 
     const setCurrentOrgData = async (orgAddr) => {
         console.log("setting current org data");
+        displayData = {nodes:[], links:[]}
         let gNode = {
             id: ethers.constants.AddressZero,
             group: 2,
-            baseToken: '1',
-            internalToken: '2',
-            baseBalance: '3',
-            internalBalance: '4',
-            baseShare: '5',
+            baseToken: '-',
+            internalToken: '-',
+            baseBalance: '-',
+            internalBalance: '-',
+            baseShare: '-',
         }
 
         let gLink = {
@@ -475,7 +516,6 @@
             group: 1,
         }
 
-        displayData = { nodes: [], links: [] };
 
         displayData = await setDisplayDataForRoot(orgAddr);
         displayData.nodes.push(gNode);
@@ -778,7 +818,7 @@
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
                             >
-                                {#if selectedOx}
+                                {#if selected0xName}
                                     {selected0xName}
                                 {:else}
                                     {Memberships
@@ -793,6 +833,7 @@
                                             class="dropdown-item"
                                             on:click={selectedOrg(dao)}>{dao}</a
                                         >
+                                        
                                     </li>
                                 {/each}
                             </ul>
@@ -1197,7 +1238,7 @@
                 {#if displayData.nodes.length > 0}
                     <div class="chart">
                         {#key displayData }
-                        <Graph graph={displayData}  currentUserData={currentUserData} doc={doc} db={db} />
+                        <Graph graph={displayData}  currentUserData={currentUserData} doc={doc} db={db} selected0x={selectedOx} sInfVal={sInfVal}  />
                         {/key}
                     </div>
                 {:else}
@@ -1252,6 +1293,7 @@
     .text-field-expl {
         font-size: 18px;
     }
+
 
     .no-org {
     }
@@ -1385,6 +1427,13 @@
 
     .btn-invest:hover {
         color: var(--main-green);
+    }
+
+    .btn-invest {
+        float: right;
+        border: 1px solid;
+        border-color: var(--main-green);
+        color: var(--main-peach);
     }
 
     .row-top {

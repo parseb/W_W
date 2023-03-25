@@ -47,6 +47,7 @@
       IinstanceDAOABI,
       ERC20ABI,
       IDAO20ABI,
+      DAO20Fact,
     } from "../chainData/abi/ABIS";
   
     import { parseEther } from "ethers/lib/utils";
@@ -70,8 +71,11 @@
     export let currentUserData;
     export let doc;
     export let db;
+    export let selected0x;
+    export let sInfVal;
 
     let hoveredName;
+    let redistriVals;
   
     let svg;
     let width = 800;
@@ -92,6 +96,11 @@
     let isEndpoint;
     let hP = {loaded: false}
     let newN;
+    let selectedMembers = [];
+    let selectedSubDs = [];
+    let subDs = [];
+
+    let inflationSlideVal;
   
     const getCurrentUserData = async () => {
         let currentUserRef = doc(db, "users", $signerAddress);
@@ -99,6 +108,19 @@
         currentUserData = currentUserData.data();
         return currentUserData;
     };
+
+    const getSubDsOf = async (addr) => {
+      let instance = new ethers.Contract(
+        addr,
+            IinstanceDAOABI,
+            $provider
+        );
+        let tokenAddr = await instance.internalTokenAddress();
+      let daoFactoryAddr = await $contracts.ODAO.DAO20FactoryAddr();
+        let Dfact = new ethers.Contract(daoFactoryAddr, DAO20Fact, $provider);
+        let subDs = await Dfact.getDAOsOfToken(tokenAddr);
+        return subDs;
+    }
 
     const setAddrName = async (addrValue, newName) => {
         let currentUserRef = doc(db, "users", $signerAddress);
@@ -124,9 +146,22 @@
         return name;
     };
 
+    const signalInflation = async (newIval) => {
+      let instance = new ethers.Contract(
+        selected0x,
+            IinstanceDAOABI,
+            $signer
+        );
+
+      let tx= await instance.signalInflation(newIval);
+      tx.wait(1).then(() => { alert("inflation changed") })
+    }
 
 
-    onMount(() => {
+    onMount( async () => {
+      sInfVal ??= 0;
+      subDs = await getSubDsOf(selected0x);
+
       simulation = d3
         .forceSimulation(nodes)
         .force(
@@ -201,9 +236,9 @@
         baseBalance:  p.baseBalance,
         internalBalance: p.internalBalance,
         baseShare: p.baseShare,
-        loaded: true
+        loaded: true,
+        inflationPerSec: p.inflationPerSec
       }
-      console.log( hP, hoveredName)
 
       hP = hP;
 
@@ -398,7 +433,7 @@
               on:click={onSelectedDAO(point.id)}
               on:mouseover={hoveredPoint(point)}
               r={point.id == hP.id ? "10":"7"}
-              fill={colourScale(point.group)}
+              fill={ ( selected0x == point.id ) ? "white" : colourScale(point.group)}
               cx={point.x}
               cy={point.y}
               transform="translate({transform.x} {transform.y}) scale({transform.k} {transform.k})"
@@ -406,6 +441,7 @@
               <title>{point.id} </title>
             </circle>
           {/each}
+          <br>
         </svg>
         <div class="mouseover-data">
           {#key hP}
@@ -414,34 +450,90 @@
           <h5 class="mod">base $: {hP.baseBalance }</h5>
           <h5 class="mod">internal $: {hP.internalBalance }</h5>
           <h5 class="mod">~of base %: {hP.baseShare}</h5>
-
+          <h5 class="mod">inflation per sec: {hP.inflationPerSec }</h5>
+          <br>
           {/key}
       </div>
-        <div class="container">
-         
+      <br>
+        <div class="container action-container">
+          
+         <br>
+         <div class="row">
+          <div class="background-repeat">
+            {#await getNameFormAddress(selected0x) then addr}  
+            <div class="row">
+              <div class="col-1"></div>
+              <div class="col-10">
+                <p class="selected-org">
+                  { addr } { addr } { addr } { addr } { addr }  <br>
+                  { addr } { addr } { addr } { addr } { addr } <br>
+                  { addr } { addr } { addr } { addr } { addr } <br>
+                </p>
+              </div>
+              <div class="col-1"></div>
+            </div>
+            {/await}
+          </div>
+          <hr class="redhr" />
+          <div class="col-12 buttonSpace">
+            <div class="row row-inflation">
+              <lable class="input-group igl">Inflation</lable>
+              <br>
+             <div class="col-3">
+
+              <input class="form-range-success" type=range min=0 max=100 default={sInfVal} bind:value={inflationSlideVal} />
+             </div>
+             <div class="col-1"><h4 class="slider-val">{inflationSlideVal ? inflationSlideVal : sInfVal }</h4></div>
+             <div class="col-5"><h4 class="slider-val"> change inflation from {sInfVal} to <span class="text-red">{inflationSlideVal ? inflationSlideVal : sInfVal}</span></h4></div>
+            <div class="col-2"> <button class="btn btn-invest" on:click={signalInflation(inflationSlideVal)}>signal inflation</button> </div>  
+           
+          </div>
+            <hr class="redhr" />
+
+            <div class="row">
+              <lable class="input-group igl"> Reallocation </lable>
+              <br>
+              {#each subDs as sM }
+              <div class="col-4"> <span class="entitity-name"> {getNameFormAddress(sM)}</span>  </div>
+              <div class="col-4"><input class="form-range-success" type=range min=0 max={100} default={0} bind:value={redistriVals[subDs.indexOf(sM)]} />
+              </div>
+              <div class="col-4">  </div>
+              {/each}
+              
+            </div>
+
+            <br>
+            <br>
+          </div>
+         </div>
         </div>
       </div>
 
-      <p>afetr svg</p>
+     
     </div>
 
   </div>
-          <!-- displayData.nodes.push({
-            id: nodeaddr,
-            group: isEndpoint,
-            baseToken: baseTaddr,
-            internalToken: internalTaddr,
-            baseBalance:  ethers.utils.formatEther(baseTokenBalance),
-            internalBalance: ethers.utils.formatEther(internalTokenBalance),
-            baseShare: baseTpercent,
-        });
 
-        displayData.links.push({
-            source: nodeaddr,
-            target: parentAddr,
-            group: 1,
-        }); -->
   <style>
+
+    .text-red {
+      color: var(--main-red);
+    }
+
+    .form-range-success {
+      width:100%;
+    }
+
+    .action-container {
+      color:#1e51da
+    }
+
+    .igl {
+      font-size: 36px;
+      font-family: 'Domine';
+      opacity: 0.9;
+    }
+
 
 :root {
         --main-blue: #1e51da;
@@ -451,6 +543,32 @@
         --main-red: #cc403a;
         --dark-grey: #222323;
         --main-black: #101011;
+    }
+    .btn-invest:hover {
+        color: var(--main-green);
+    }
+    .btn-invest {
+        float: right;
+        border: 1px solid;
+        border-color: var(--main-green);
+        color: var(--main-peach);
+    }
+
+    .selected-org {
+      opacity: 0.03;
+      color: var(--main-light);
+      position: absolute;
+      z-index: -2;
+      font-size: 40px;
+      padding-right: 260px;
+    }
+
+    .redhr {
+      color: var(--main-red) !important;
+      min-height: 5px !important;
+      height: 3px;
+      opacity: 1;
+      font-size: 20px;
     }
 
     .hp-name-i {
@@ -475,18 +593,20 @@
 
     .mod {
       color: #c8ccc2;
-      opacity: 0.2;
+      opacity: 0.28;
     }
     .mouseover-data {
       z-index: 1;
-      margin-top:-180px;
+      margin-top:-200px;
+      padding-bottom: 10px;
       margin-left: 20px;
+      font-family: 'Lustria';
     }
 
     svg {
       float: center;
       width: 100%;
-      height: 75%;
+      height: 60%;
     }
     
     .col-graph {
