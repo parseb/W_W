@@ -49,6 +49,7 @@
     "firebase": "^9.17.1",
     "ipfs-http-client": "^60.0.0",
     "serialize-javascript": "^5.0.1",
-    "svelte-ethers-store": "^2.5.8"
+    "svelte-ethers-store": "^2.5.8",
+    "svelte-loading-spinners": "^0.3.4"
   }
 }

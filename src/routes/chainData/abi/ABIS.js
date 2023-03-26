@@ -20,10 +20,10 @@ export const AddrX = {
     RPCURL: "http://127.0.0.1:8545"  
   },
   10200 : { /// chiado gnosis testnet
-    ODAO: "0x133cc2245e793c2805215cb77d177dd9b58b86fb",
-    MembraneRegistry: "0x22d0ddddcd79d39d56496206ffd5568cd59ed61e",
-    MEMBERregistry: "0x936eb5b94436e2986a2da6a9e3a8ab031db00b97", 
-    AbstractA: "0xd5da86a54cb12a68d374994a39398647e6bae8fd",
+    ODAO: "0xd7a10be15e4033fe37f946b06c1104106a5535db",
+    MembraneRegistry: "0x3e7347d61617700c620acf86b2dbb95856aebd60",
+    MEMBERregistry: "0x86f428da308d17b1ed76acb8058257238b3be854", 
+    AbstractA: "0xcbddecccc8fe1d86f5fb544ea66d2637b5d62caa",
     RPCURL: "https://127.0.0.1:8545", //"https://rpc.chiadochain.net",
     EUR: "0xb106ed7587365a16b6691a3D4B2A734f4E8268a2"
   }
@@ -32,18 +32,21 @@ export const AddrX = {
 
 // /// chiado
 // == Logs ==
-  // Member --- 10200 __________####_____ : 0x936eb5b94436e2986a2da6a9e3a8ab031db00b97
-  // ODAO --- 10200 __________####_____ : 0x133cc2245e793c2805215cb77d177dd9b58b86fb
-  // memBRAINE --- 10200 __________####_____ : 0x22d0ddddcd79d39d56496206ffd5568cd59ed61e
-  // Abstract A --- 10200 __________####_____ : 0xd5da86a54cb12a68d374994a39398647e6bae8fd
-  // Meeting POAP --- 10200 __________####_____ : 0x9ef69bb9163b55e964bc53e3ae53b6615270e2ce
-  // ----------populate-----------
-  // -----------------------------
-  // changing membrane 742657821882937903  --- expected ---  742657821882937903
-  // Garden DAO --- 10200 __________####_____ : 0xa719f25538d4af7d767505e6637a321730cd7946
-  // Membrane ID --- 10200 __________####_____ : 742657821882937903
-  // Garden DAO --- 10200 __________####_____ : 0xa719f25538d4af7d767505e6637a321730cd7946
-  // Internal Token  --- 10200 __________####_____ : 0x09ee591f5df82f7b7121c90d844bd3d51b706f54
+//   Member --- 10200 __________####_____ : 0x86f428da308d17b1ed76acb8058257238b3be854
+//   ODAO --- 10200 __________####_____ : 0xd7a10be15e4033fe37f946b06c1104106a5535db
+//   memBRAINE --- 10200 __________####_____ : 0x3e7347d61617700c620acf86b2dbb95856aebd60
+//   Abstract A --- 10200 __________####_____ : 0xcbddecccc8fe1d86f5fb544ea66d2637b5d62caa
+//   Meeting POAP --- 10200 __________####_____ : 0xd7666face21b503f0fd01d0586f32e13ecc07f49
+//   ----------populate-----------
+//   -----------------------------
+//   changing membrane 416615128709783764  --- expected ---  416615128709783764
+//   Base Internal Token --- 10200 __________####_____ : 0xc858ceca29c6f2e36b28ba9fba098a6d5626aa95
+//   Garden DAO --- 10200 __________####_____ : 0xd74ba7bf32a700584609c2e0bdd006cc24df37e0
+//   Membrane ID --- 10200 __________####_____ : 416615128709783764
+//   Garden DAO --- 10200 __________####_____ : 0xd74ba7bf32a700584609c2e0bdd006cc24df37e0
+//   Internal Token  --- 10200 __________####_____ : 0xc858ceca29c6f2e36b28ba9fba098a6d5626aa95
+//   new office project Membraneid 416615128709783764 361672278035523907
+//   new SUBD office project 0x89beb6f9b2831a073c3d6838ecf890f7a23ff99c
 
   // http://guild.xyz/walllaw
 // LinkeGaard.eth
@@ -1325,6 +1328,194 @@ export const IinstanceDAOABI = [
 export const IMember1155ABI = [
   {
     "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_AlreadyIn",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_InvalidMintID",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_OnlyMembraneRegistry",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_OnlyODAO",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_UnauthorizedID",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_UnregisteredDAO",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_Untransferable",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MR1155_onlyOdao",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
+    "name": "ApprovalForAll",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "TransferBatch",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "TransferSingle",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "value",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "URI",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "who",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "dao",
+        "type": "address"
+      }
+    ],
+    "name": "isNowMember",
+    "type": "event"
+  },
+  {
+    "inputs": [],
     "name": "AbstractAddr",
     "outputs": [
       {
@@ -1392,12 +1583,12 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_owner",
+        "name": "",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "_id",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -1416,12 +1607,12 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address[]",
-        "name": "_owners",
+        "name": "owners",
         "type": "address[]"
       },
       {
         "internalType": "uint256[]",
-        "name": "_ids",
+        "name": "ids",
         "type": "uint256[]"
       }
     ],
@@ -1429,7 +1620,7 @@ export const IMember1155ABI = [
     "outputs": [
       {
         "internalType": "uint256[]",
-        "name": "",
+        "name": "balances",
         "type": "uint256[]"
       }
     ],
@@ -1483,30 +1674,11 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "who_",
+        "name": "ofWhom_",
         "type": "address"
       }
     ],
     "name": "getEndpointsOf",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "startAt_",
-        "type": "uint256"
-      }
-    ],
-    "name": "getRoots",
     "outputs": [
       {
         "internalType": "address[]",
@@ -1539,9 +1711,9 @@ export const IMember1155ABI = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "id_",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "instance_",
+        "type": "address"
       }
     ],
     "name": "getctiveMembersOf",
@@ -1578,12 +1750,12 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_owner",
+        "name": "",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_operator",
+        "name": "",
         "type": "address"
       }
     ],
@@ -1626,32 +1798,6 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "pushAsRoot",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "pushIsEndpoint",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "dao_",
         "type": "address"
       },
@@ -1670,27 +1816,27 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_from",
+        "name": "from",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_to",
+        "name": "to",
         "type": "address"
       },
       {
         "internalType": "uint256[]",
-        "name": "_ids",
+        "name": "ids",
         "type": "uint256[]"
       },
       {
         "internalType": "uint256[]",
-        "name": "_values",
+        "name": "amounts",
         "type": "uint256[]"
       },
       {
         "internalType": "bytes",
-        "name": "_data",
+        "name": "data",
         "type": "bytes"
       }
     ],
@@ -1703,27 +1849,27 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_from",
+        "name": "from",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_to",
+        "name": "to",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "_id",
+        "name": "id",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "_value",
+        "name": "amount",
         "type": "uint256"
       },
       {
         "internalType": "bytes",
-        "name": "_data",
+        "name": "data",
         "type": "bytes"
       }
     ],
@@ -1736,12 +1882,12 @@ export const IMember1155ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_operator",
+        "name": "operator",
         "type": "address"
       },
       {
         "internalType": "bool",
-        "name": "_approved",
+        "name": "approved",
         "type": "bool"
       }
     ],
@@ -1761,6 +1907,25 @@ export const IMember1155ABI = [
     "name": "setUri",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

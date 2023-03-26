@@ -161,6 +161,7 @@
     onMount( async () => {
       sInfVal ??= 0;
       subDs = await getSubDsOf(selected0x);
+      redistriVals = []
 
       simulation = d3
         .forceSimulation(nodes)
@@ -402,6 +403,18 @@
       let symb = await T.symbol();
       return symb;
     };
+
+    const mintInfaltion = async (addr) => {
+      let instance = new ethers.Contract(
+            addr,
+            IinstanceDAOABI,
+            $signer
+        );
+      
+        await instance.mintInflation();
+    }
+
+
   </script>
   
   <svelte:window on:resize={resize} />
@@ -490,20 +503,46 @@
           </div>
             <hr class="redhr" />
 
-            <div class="row">
-              <lable class="input-group igl"> Reallocation </lable>
-              <br>
-              {#each subDs as sM }
-              <div class="col-4"> <span class="entitity-name"> {getNameFormAddress(sM)}</span>  </div>
-              <div class="col-4"><input class="form-range-success" type=range min=0 max={100} default={0} bind:value={redistriVals[subDs.indexOf(sM)]} />
+            {#key subDs}
+              {#if subDs.length > 0}
+              <div class="row">
+                <lable class="input-group igl"> Reallocation </lable>
+                <br>
+                {#each subDs as sM }
+                <div class="col-4"> <span class="entitity-name"> {#await getNameFormAddress(sM) then name }  {name} {/await} </span>  </div>
+                <div class="col-4"><input class="form-range-success" type=range min={0} max={100} default={0} bind:value={redistriVals[subDs.indexOf(sM)]} />
+                </div>
+                <div class="col-4"> { redistriVals[subDs.indexOf(sM)] ? getNameFormAddress(sM) : 0 } </div>
+                {/each}
+                
               </div>
-              <div class="col-4">  </div>
-              {/each}
-              
-            </div>
+              <div class="row"> 
+                <button class="btn btn-invest">signal redistributive preference</button>
+              </div>
+
+              {:else}
+                "No sub-entities"
+              {/if}
+            {/key}
+
+
 
             <br>
             <br>
+            <hr class="redhr" />
+
+            <div class="row"> 
+              <div class="col-6">
+                <lable class="input-group igl"> Mint inflation </lable>
+
+                <button class="btn btn-invest" on:click={mintInfaltion(selected0x)}>mint inflation</button>
+              </div>
+              <div class="col-6">
+                <lable class="input-group igl"> Trickle Down </lable>
+
+                <button class="btn btn-invest" on:click={() => alert("trickle feeding to endpoint")}>trickle feed</button>
+              </div>
+            </div>
           </div>
          </div>
         </div>
