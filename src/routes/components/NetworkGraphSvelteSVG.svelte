@@ -414,6 +414,13 @@
         await instance.mintInflation();
     }
 
+    const plantEndpoint = async (selected0x) => {
+      
+      let tx = await $contracts.ODAO.createSubDAO($signerAddress,selected0x);
+      let s = tx.wait(1);
+      console.log('planted enpoint tx');
+    }
+
 
   </script>
   
@@ -532,15 +539,20 @@
             <hr class="redhr" />
 
             <div class="row"> 
-              <div class="col-6">
+              <div class="col-4">
                 <lable class="input-group igl"> Mint inflation </lable>
 
-                <button class="btn btn-invest" on:click={mintInfaltion(selected0x)}>mint inflation</button>
+                <button class="btn btn-invest" on:click={mintInfaltion(selected0x)}>mint outstanding inflation</button>
               </div>
-              <div class="col-6">
+              <div class="col-4">
                 <lable class="input-group igl"> Trickle Down </lable>
 
-                <button class="btn btn-invest" on:click={() => alert("trickle feeding to endpoint")}>trickle feed</button>
+                <button class="btn btn-invest" on:click={() => alert("trickle feeding to endpoint")}>trickle feed to selected</button>
+              </div>
+              <div class="col-4">
+                <lable class="input-group igl"> Plant Endpoint </lable>
+
+                <button class="btn btn-invest" on:click={plantEndpoint(selected0x)}>plant allocation endpoint</button>
               </div>
             </div>
           </div>
